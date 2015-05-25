@@ -135,7 +135,9 @@ OniaRootupler::~OniaRootupler() {}
 //Check recursively if any ancestor of particle is the given one
 bool OniaRootupler::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
    if (ancestor == particle ) return true;
-   if (particle->numberOfMothers() && isAncestor(ancestor,particle->mother(0))) return true;
+   for (size_t i=0; i< particle->numberOfMothers(); i++) {
+      if (isAncestor(ancestor, particle->mother(i))) return true;
+   }
    return false;
 }
 
@@ -170,52 +172,35 @@ void OniaRootupler::analyze(const edm::Event & iEvent, const edm::EventSetup & i
   if (isMC_ && packed.isValid() && pruned.isValid()) {
      dimuon_pdgId  = 0;
      gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     gen_muonM_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     gen_muonP_p4.SetPtEtaPhiM(0.,0.,0.,0.);
      int foundit   = 0;
 
      for (size_t i=0; i<pruned->size(); i++) {
          int p_id = abs((*pruned)[i].pdgId());
-         if ( p_id == 443 || p_id == 100443 || p_id == 553 || p_id == 100553 || p_id == 200553) {
+         const reco::Candidate *aonia = &(*pruned)[i];
+         if (( p_id == 443 || p_id == 100443 || p_id == 553 || p_id == 100553 || p_id == 200553) && (aonia->status() == 2)) {
             dimuon_pdgId = p_id;
             foundit++;
-            const reco::Candidate *aonia = &(*pruned)[i];
-            //gen_dimuon_p4.SetPtEtaPhiM(aonia->pt(),aonia->eta(),aonia->phi(),aonia->mass());
-            const reco::Candidate * j1 = nullptr;
-            const reco::Candidate * j2 = nullptr;
             for (size_t j=0; j<packed->size(); j++) { //get the pointer to the first survied ancestor of a given packed GenParticle in the prunedCollection
-                const reco::Candidate * motherInPrunedCollection = (*packed)[j].mother(0) ;
-                if (motherInPrunedCollection != nullptr && isAncestor( aonia , motherInPrunedCollection)) {
-                   const reco::Candidate * d = &(*packed)[j];
-                   int dauId = d->pdgId();
-                   if (dauId == 13 && motherInPrunedCollection->pdgId() == dimuon_pdgId) {
-                      gen_muonM_p4.SetPtEtaPhiM(d->pt(),d->eta(),d->phi(),d->mass());
-                      foundit++;
-                      j1 = motherInPrunedCollection;
-                   }
-                   if (dauId == -13 && motherInPrunedCollection->pdgId() == dimuon_pdgId) {
-                      gen_muonP_p4.SetPtEtaPhiM(d->pt(),d->eta(),d->phi(),d->mass());
-                      foundit++;
-                      j2 = motherInPrunedCollection;
-                   }
-                }
-                if ( foundit == 3 ) break;
-            } // for (size_t j
-            if ( foundit == 3 ) {
-               if ( j1 != nullptr && j2 != nullptr && j1 == j2 ) {
-                  //gen_dimuon_p4.SetPtEtaPhiM(j1->pt(),j1->eta(),j1->phi(),j1->mass());
-                  gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;   // this should take into account FSR
-                  break;
-               } else {
-                  std::cout << "OniaRootupler: mother of muons does not match (" << j1->pdgId() << "," << j2->pdgId() << ") " 
-                            << run << "," << event << std::endl;
-                  foundit = 0;
-                  dimuon_pdgId = 0;
+               const reco::Candidate * motherInPrunedCollection = (*packed)[j].mother(0);
+               const reco::Candidate * d = &(*packed)[j];
+               if ( motherInPrunedCollection != nullptr && (d->pdgId() == 13 ) && isAncestor(aonia , motherInPrunedCollection) ){
+                  gen_muonM_p4.SetPtEtaPhiM(d->pt(),d->eta(),d->phi(),d->mass());
+                  foundit++;
+               } 
+               if ( motherInPrunedCollection != nullptr && (d->pdgId() == -13 ) && isAncestor(aonia , motherInPrunedCollection) ) {
+                  gen_muonP_p4.SetPtEtaPhiM(d->pt(),d->eta(),d->phi(),d->mass());
+                  foundit++;
                }
+               if ( foundit == 3 ) break;               
+            }
+            if ( foundit == 3 ) {
+               //gen_dimuon_p4.SetPtEtaPhiM(j1->pt(),j1->eta(),j1->phi(),j1->mass());
+               gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;   // this should take into account FSR
+               break;
             } else {
-               std::cout << "OniaRootupler: found just " << foundit << " out of 3 particles " << run << "," << event << std::endl;
                foundit = 0;
                dimuon_pdgId = 0;
+               gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
             }            
          }  // if ( p_id
      } // for (size
