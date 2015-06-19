@@ -80,6 +80,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 
 	TTree *onia_tree;
 
+        Int_t mother_pdgId;
         Int_t dimuon_pdgId;
 	TLorentzVector gen_dimuon_p4;
 	TLorentzVector gen_muonP_p4;
@@ -123,6 +124,7 @@ OnlyBest_(iConfig.getParameter<bool>("OnlyBest"))
   onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/I");
 
   if (isMC_) {
+     onia_tree->Branch("mother_pdgId",  &mother_pdgId,     "mother_pdgId/I");
      onia_tree->Branch("dimuon_pdgId",  &dimuon_pdgId,     "dimuon_pdgId/I");
      onia_tree->Branch("gen_dimuon_p4", "TLorentzVector",  &gen_dimuon_p4);
      onia_tree->Branch("gen_muonP_p4",  "TLorentzVector",  &gen_muonP_p4);
@@ -171,6 +173,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   run   = iEvent.id().run();
   event = iEvent.id().event();
   dimuon_pdgId = 0;
+  mother_pdgId = 0;
   irank = 0;
 
   // Pruned particles are the one containing "important" stuff
@@ -208,10 +211,12 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
             }
             if ( foundit == 3 ) {
                gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;   // this should take into account FSR
+               mother_pdgId  = GetAncestor(aonia)->pdgId();
                break;
             } else {
                foundit = 0;
                dimuon_pdgId = 0;
+               mother_pdgId = 0;
                gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
             }            
          }  // if ( p_id
@@ -254,6 +259,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   dimuon_pdgId = 0;
+  mother_pdgId = 0;
   vProb=-1;
 }
 
