@@ -24,13 +24,10 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
-//#include "DataFormats/VertexReco/interface/Vertex.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TLorentzVector.h"
 #include "TTree.h"
-//#include <vector>
-//#include <sstream>
 
 //
 // class declaration
@@ -42,6 +39,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	~Onia2MuMuRootupler();
 
 	static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
+        const reco::Candidate* GetAncestor(const reco::Candidate* p);
         bool isAncestor(const reco::Candidate * ancestor, const reco::Candidate * particle);
 
       private:
@@ -140,6 +138,15 @@ Onia2MuMuRootupler::~Onia2MuMuRootupler() {}
 // member functions
 //
 
+const reco::Candidate* Onia2MuMuRootupler::GetAncestor(const reco::Candidate* p) {
+   if (p->numberOfMothers()) {
+      if  ((p->mother(0))->pdgId() == p->pdgId()) return GetAncestor(p->mother(0));
+      else return p->mother(0);
+   }
+   std::cout << "GetAncestor: Inconsistet ancestor, particle does not have a mother " << std::endl;
+   return p;
+}
+
 //Check recursively if any ancestor of particle is the given one
 bool Onia2MuMuRootupler::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle) {
    if (ancestor == particle ) return true;
@@ -151,9 +158,6 @@ bool Onia2MuMuRootupler::isAncestor(const reco::Candidate* ancestor, const reco:
 
 // ------------ method called for each event  ------------
 void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
-
-//  using namespace edm;
-//  using namespace std;
 
   edm::Handle<pat::CompositeCandidateCollection> dimuons;
   iEvent.getByToken(dimuon_Label,dimuons);
@@ -170,18 +174,11 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   irank = 0;
 
   // Pruned particles are the one containing "important" stuff
-  //edm::Handle<edm::View<reco::GenParticle> > pruned;
-  //iEvent.getByLabel("prunedGenParticles",pruned);
-  //edm::EDGetTokenT<reco::GenParticleCollection> genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"prunedGenParticles");
   edm::Handle<reco::GenParticleCollection> pruned;
   iEvent.getByToken(genCands_, pruned);
 
   // Packed particles are all the status 1, so usable to remake jets
   // The navigation from status 1 to pruned is possible (the other direction should be made by hand)
-  //edm::Handle<edm::View<pat::PackedGenParticle> > packed;
-  //iEvent.getByLabel("packedGenParticles",packed);
-
-  //edm::EDGetTokenT<pat::PackedGenParticleCollection> packCands_ = consumes<pat::PackedGenParticleCollection>((edm::InputTag)"packedGenParticles");
   edm::Handle<pat::PackedGenParticleCollection> packed;
   iEvent.getByToken(packCands_,  packed);
 
@@ -258,19 +255,6 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   dimuon_pdgId = 0;
   vProb=-1;
-
-/*
-  if (!irank  && dimuon_pdgId) {
-     //std::cout << "Onia2MuMuRootupler: does not find a reco combination but there is an gen particle " << run << "," << event << std::endl;
-     dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     muonP_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     muonN_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     vProb=-1;
-     cosAlpha=-100;
-     ppdlPV=-100;
-     onia_tree->Fill();
-  }
-*/
 }
 
 // ------------ method called once each job just before starting event loop  ------------
