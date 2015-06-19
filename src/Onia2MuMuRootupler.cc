@@ -14,26 +14,23 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+//#include "DataFormats/VertexReco/interface/Vertex.h"
 
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TLorentzVector.h"
 #include "TTree.h"
 #include <vector>
-#include <sstream>
-
-#include "DataFormats/VertexReco/interface/Vertex.h"
+//#include <sstream>
 
 //
 // class declaration
@@ -59,9 +56,10 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 
 	// ----------member data ---------------------------
 	std::string file_name;
-	edm::InputTag dimuon_Label;
-	edm::InputTag primaryVertices_Label;
+	edm::EDGetTokenT<pat::CompositeCandidateCollection> dimuon_Label;
+        edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
 	bool isMC_;
+        int  pdgid_;
 
 	UInt_t run;
 	UInt_t event;
@@ -94,10 +92,11 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 //
 
 Onia2MuMuRootupler::Onia2MuMuRootupler(const edm::ParameterSet & iConfig):
-dimuon_Label(iConfig.getParameter < edm::InputTag > ("dimuons")),
-primaryVertices_Label(iConfig.getParameter < edm::InputTag > ("primaryVertices")),
-isMC_(iConfig.getParameter < bool > ("isMC")
-) {
+dimuon_Label(consumes<pat::CompositeCandidateCollection>(iConfig.getParameter< edm::InputTag>("dimuons"))),
+primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter< edm::InputTag>("primaryVertices"))),
+isMC_(iConfig.getParameter<bool>("isMC")),
+pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid"))
+{
   edm::Service < TFileService > fs;
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
 
@@ -143,14 +142,15 @@ bool Onia2MuMuRootupler::isAncestor(const reco::Candidate* ancestor, const reco:
 
 // ------------ method called for each event  ------------
 void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
-  using namespace edm;
-  using namespace std;
+
+//  using namespace edm;
+//  using namespace std;
 
   edm::Handle<pat::CompositeCandidateCollection> dimuons;
-  iEvent.getByLabel(dimuon_Label,dimuons);
+  iEvent.getByToken(dimuon_Label,dimuons);
 
-  edm::Handle < std::vector < reco::Vertex > >primaryVertices_handle;
-  iEvent.getByLabel(primaryVertices_Label, primaryVertices_handle);
+  edm::Handle<reco::VertexCollection> primaryVertices_handle;
+  iEvent.getByToken(primaryVertices_Label, primaryVertices_handle);
 
   numPrimaryVertices = -1;
   if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
@@ -161,13 +161,19 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   irank = 0;
 
   // Pruned particles are the one containing "important" stuff
-  edm::Handle<edm::View<reco::GenParticle> > pruned;
-  iEvent.getByLabel("prunedGenParticles",pruned);
+  //edm::Handle<edm::View<reco::GenParticle> > pruned;
+  //iEvent.getByLabel("prunedGenParticles",pruned);
+  edm::Handle<reco::GenParticleCollection> pruned;
+  edm::EDGetTokenT<reco::GenParticleCollection> genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"prunedGenParticles");
+  iEvent.getByToken(genCands_, pruned);
 
   // Packed particles are all the status 1, so usable to remake jets
   // The navigation from status 1 to pruned is possible (the other direction should be made by hand)
-  edm::Handle<edm::View<pat::PackedGenParticle> > packed;
-  iEvent.getByLabel("packedGenParticles",packed);
+  //edm::Handle<edm::View<pat::PackedGenParticle> > packed;
+  //iEvent.getByLabel("packedGenParticles",packed);
+  edm::Handle<pat::PackedGenParticleCollection> packed;
+  edm::EDGetTokenT<pat::PackedGenParticleCollection> packCands_ = consumes<pat::PackedGenParticleCollection>((edm::InputTag)"packedGenParticles");
+  iEvent.getByToken(packCands_,  packed);
 
   if (isMC_ && packed.isValid() && pruned.isValid()) {
      dimuon_pdgId  = 0;
@@ -177,7 +183,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      for (size_t i=0; i<pruned->size(); i++) {
          int p_id = abs((*pruned)[i].pdgId());
          const reco::Candidate *aonia = &(*pruned)[i];
-         if (( p_id == 443 || p_id == 100443 || p_id == 553 || p_id == 100553 || p_id == 200553) && (aonia->status() == 2)) {
+         if (( p_id == pdgid_ ) && (aonia->status() == 2)) {
             dimuon_pdgId = p_id;
             foundit++;
             for (size_t j=0; j<packed->size(); j++) { //get the pointer to the first survied ancestor of a given packed GenParticle in the prunedCollection
@@ -194,7 +200,6 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
                if ( foundit == 3 ) break;               
             }
             if ( foundit == 3 ) {
-               //gen_dimuon_p4.SetPtEtaPhiM(j1->pt(),j1->eta(),j1->phi(),j1->mass());
                gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;   // this should take into account FSR
                break;
             } else {
