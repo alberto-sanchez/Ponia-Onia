@@ -86,6 +86,9 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	TLorentzVector gen_dimuon_p4;
 	TLorentzVector gen_muonP_p4;
 	TLorentzVector gen_muonM_p4;
+          
+        edm::EDGetTokenT<reco::GenParticleCollection> genCands_;
+        edm::EDGetTokenT<pat::PackedGenParticleCollection> packCands_;
 
 };
 
@@ -127,6 +130,8 @@ OnlyBest_(iConfig.getParameter<bool>("OnlyBest"))
      onia_tree->Branch("gen_muonP_p4",  "TLorentzVector",  &gen_muonP_p4);
      onia_tree->Branch("gen_muonN_p4",  "TLorentzVector",  &gen_muonM_p4);
   }
+  genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"prunedGenParticles");
+  packCands_ = consumes<pat::PackedGenParticleCollection>((edm::InputTag)"packedGenParticles");
 }
 
 Onia2MuMuRootupler::~Onia2MuMuRootupler() {}
@@ -167,16 +172,17 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   // Pruned particles are the one containing "important" stuff
   //edm::Handle<edm::View<reco::GenParticle> > pruned;
   //iEvent.getByLabel("prunedGenParticles",pruned);
+  //edm::EDGetTokenT<reco::GenParticleCollection> genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"prunedGenParticles");
   edm::Handle<reco::GenParticleCollection> pruned;
-  edm::EDGetTokenT<reco::GenParticleCollection> genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"prunedGenParticles");
   iEvent.getByToken(genCands_, pruned);
 
   // Packed particles are all the status 1, so usable to remake jets
   // The navigation from status 1 to pruned is possible (the other direction should be made by hand)
   //edm::Handle<edm::View<pat::PackedGenParticle> > packed;
   //iEvent.getByLabel("packedGenParticles",packed);
+
+  //edm::EDGetTokenT<pat::PackedGenParticleCollection> packCands_ = consumes<pat::PackedGenParticleCollection>((edm::InputTag)"packedGenParticles");
   edm::Handle<pat::PackedGenParticleCollection> packed;
-  edm::EDGetTokenT<pat::PackedGenParticleCollection> packCands_ = consumes<pat::PackedGenParticleCollection>((edm::InputTag)"packedGenParticles");
   iEvent.getByToken(packCands_,  packed);
 
   if (isMC_ && packed.isValid() && pruned.isValid()) {
@@ -242,13 +248,20 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
            irank++;
            onia_tree->Fill();
            if (OnlyBest_) break;
-        }
+        } 
      }
   } else {
      std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
   }
+
+  dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  dimuon_pdgId = 0;
+  vProb=-1;
+
+/*
   if (!irank  && dimuon_pdgId) {
-     std::cout << "Onia2MuMuRootupler: does not find a reco combination but there is an gen particle " << run << "," << event << std::endl;
+     //std::cout << "Onia2MuMuRootupler: does not find a reco combination but there is an gen particle " << run << "," << event << std::endl;
      dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
      muonP_p4.SetPtEtaPhiM(0.,0.,0.,0.);
      muonN_p4.SetPtEtaPhiM(0.,0.,0.,0.);
@@ -257,6 +270,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      ppdlPV=-100;
      onia_tree->Fill();
   }
+*/
 }
 
 // ------------ method called once each job just before starting event loop  ------------
