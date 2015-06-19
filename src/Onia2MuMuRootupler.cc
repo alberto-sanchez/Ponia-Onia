@@ -29,7 +29,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TLorentzVector.h"
 #include "TTree.h"
-#include <vector>
+//#include <vector>
 //#include <sstream>
 
 //
@@ -58,8 +58,10 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	std::string file_name;
 	edm::EDGetTokenT<pat::CompositeCandidateCollection> dimuon_Label;
         edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
-	bool isMC_;
         int  pdgid_;
+        std::vector<double> OniaMassCuts_;
+	bool isMC_;
+        bool OnlyBest_;
 
 	UInt_t run;
 	UInt_t event;
@@ -94,8 +96,10 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 Onia2MuMuRootupler::Onia2MuMuRootupler(const edm::ParameterSet & iConfig):
 dimuon_Label(consumes<pat::CompositeCandidateCollection>(iConfig.getParameter< edm::InputTag>("dimuons"))),
 primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter< edm::InputTag>("primaryVertices"))),
+pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
+OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
 isMC_(iConfig.getParameter<bool>("isMC")),
-pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid"))
+OnlyBest_(iConfig.getParameter<bool>("OnlyBest"))
 {
   edm::Service < TFileService > fs;
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
@@ -214,28 +218,31 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      if ( ! dimuon_pdgId ) std::cout << "Onia2MuMuRootupler: does not found the given decay " << run << "," << event << std::endl;
   }  // end if isMC
 
-  bool bestCandidateOnly_ = false;
+  float OniaMassMax_ = OniaMassCuts_[1];
+  float OniaMassMin_ = OniaMassCuts_[0];
 
   if ( dimuons.isValid() && dimuons->size() > 0) {
      for (pat::CompositeCandidateCollection::const_iterator  dimuonCand = dimuons->begin(); dimuonCand!= dimuons->end(); ++dimuonCand) {
-        dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(), dimuonCand->eta(), dimuonCand->phi(), dimuonCand->mass());
-        reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
-        reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
-        if ( dimuonCand->daughter("muon1")->charge() < 0) {
-           vP = dimuonCand->daughter("muon2")->p4();
-           vM = dimuonCand->daughter("muon1")->p4();
+        if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_) {
+           dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(), dimuonCand->eta(), dimuonCand->phi(), dimuonCand->mass());
+           reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
+           reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
+           if ( dimuonCand->daughter("muon1")->charge() < 0) {
+              vP = dimuonCand->daughter("muon2")->p4();
+              vM = dimuonCand->daughter("muon1")->p4();
+           }
+           muonP_p4.SetPtEtaPhiM(vP.pt(), vP.eta(), vP.phi(), vP.mass());
+           muonN_p4.SetPtEtaPhiM(vM.pt(), vM.eta(), vM.phi(), vM.mass());
+           MassErr = dimuonCand->userFloat("MassErr");
+           vProb = dimuonCand->userFloat("vProb");
+           DCA = dimuonCand->userFloat("DCA");
+           ppdlPV = dimuonCand->userFloat("ppdlPV");
+           ppdlErrPV = dimuonCand->userFloat("ppdlErrPV");
+           cosAlpha = dimuonCand->userFloat("cosAlpha");
+           irank++;
+           onia_tree->Fill();
+           if (OnlyBest_) break;
         }
-        muonP_p4.SetPtEtaPhiM(vP.pt(), vP.eta(), vP.phi(), vP.mass());
-        muonN_p4.SetPtEtaPhiM(vM.pt(), vM.eta(), vM.phi(), vM.mass());
-        MassErr = dimuonCand->userFloat("MassErr");
-        vProb = dimuonCand->userFloat("vProb");
-        DCA = dimuonCand->userFloat("DCA");
-        ppdlPV = dimuonCand->userFloat("ppdlPV");
-        ppdlErrPV = dimuonCand->userFloat("ppdlErrPV");
-        cosAlpha = dimuonCand->userFloat("cosAlpha");
-        irank++;
-        onia_tree->Fill();
-        if (bestCandidateOnly_) break;
      }
   } else {
      std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
