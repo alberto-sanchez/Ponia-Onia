@@ -25,6 +25,9 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TLorentzVector.h"
 #include "TTree.h"
@@ -39,10 +42,12 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	~Onia2MuMuRootupler();
 
 	static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
-        const reco::Candidate* GetAncestor(const reco::Candidate* p);
-        bool isAncestor(const reco::Candidate * ancestor, const reco::Candidate * particle);
 
       private:
+        UInt_t getTriggerBits(const edm::Event &);
+        bool   isAncestor(const reco::Candidate *, const reco::Candidate *);
+        const  reco::Candidate* GetAncestor(const reco::Candidate *);
+
 	virtual void beginJob();
 	virtual void analyze(const edm::Event &, const edm::EventSetup &);
 	virtual void endJob();
@@ -56,6 +61,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	std::string file_name;
 	edm::EDGetTokenT<pat::CompositeCandidateCollection> dimuon_Label;
         edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
+        edm::EDGetTokenT<edm::TriggerResults> triggerResults_Label;
         int  pdgid_;
         std::vector<double> OniaMassCuts_;
 	bool isMC_;
@@ -64,6 +70,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	UInt_t run;
 	UInt_t event;
         Int_t  irank;
+        UInt_t trigger; 
 
 	TLorentzVector dimuon_p4;
 	TLorentzVector muonP_p4;
@@ -98,6 +105,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 Onia2MuMuRootupler::Onia2MuMuRootupler(const edm::ParameterSet & iConfig):
 dimuon_Label(consumes<pat::CompositeCandidateCollection>(iConfig.getParameter< edm::InputTag>("dimuons"))),
 primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter< edm::InputTag>("primaryVertices"))),
+triggerResults_Label(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"))),
 pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
 isMC_(iConfig.getParameter<bool>("isMC")),
@@ -106,9 +114,10 @@ OnlyBest_(iConfig.getParameter<bool>("OnlyBest"))
   edm::Service < TFileService > fs;
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
 
-  onia_tree->Branch("run",   &run,   "run/I");
-  onia_tree->Branch("event", &event, "event/I");
-  onia_tree->Branch("irank", &irank, "irank/I");
+  onia_tree->Branch("run",     &run,     "run/I");
+  onia_tree->Branch("event",   &event,   "event/I");
+  onia_tree->Branch("irank",   &irank,   "irank/I");
+  onia_tree->Branch("trigger", &trigger, "trigger/I");
 
   onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
   onia_tree->Branch("muonP_p4",  "TLorentzVector", &muonP_p4);
@@ -158,6 +167,106 @@ bool Onia2MuMuRootupler::isAncestor(const reco::Candidate* ancestor, const reco:
    return false;
 }
 
+UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
+/* Grab Trigger information. Save it in variable trigger, trigger is an int between 0 and 127, in binary it is:
+   (pass 2)(pass 1)(pass 0)
+   ex. 7 = pass 0, 1 and 2
+   ex. 6 = pass 2, 3
+   ex. 1 = pass 0
+*/
+
+   UInt_t itrigger = 0;
+   edm::Handle<edm::TriggerResults> triggerResults_handle;
+   iEvent.getByToken(triggerResults_Label, triggerResults_handle);
+   if ( ! triggerResults_handle.isValid() ) return itrigger;
+
+   const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
+
+   std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6;
+   std::stringstream ss;
+
+   for ( int version = 1; version<3; version ++ ) {
+      ss<<"HLT_Dimuon16_Jpsi_v"<<version;
+      bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon13_PsiPrime_v"<<version;
+      bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon13_Upsilon_v"<<version;
+      bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon10_Jpsi_Barrel_v"<<version;
+      bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon8_PsiPrime_Barrel_v"<<version;
+      bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon0_Upsilon_Barrel_v"<<version;
+      bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+      ss<<"HLT_Dimuon20_Jpsi_v"<<version;
+      bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss.str()).label().c_str()));
+   }
+   for (unsigned int i=0; i<bits_0.size(); i++) {
+      unsigned int bit = bits_0[i];
+      if ( bit < triggerResults_handle->size() ){
+	if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 1;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_1.size(); i++) {
+      unsigned int bit = bits_1[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 2;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_2.size(); i++) {
+      unsigned int bit = bits_2[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 4;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_3.size(); i++) {
+      unsigned int bit = bits_3[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 8;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_4.size(); i++) {
+      unsigned int bit = bits_4[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 16;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_5.size(); i++) {
+      unsigned int bit = bits_5[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 32;
+          break;
+        }
+      }
+   }
+   for (unsigned int i=0; i<bits_6.size(); i++) {
+      unsigned int bit = bits_6[i];
+      if ( bit < triggerResults_handle->size() ){
+        if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+          itrigger += 64;
+          break;
+        }
+      }
+   }
+   return itrigger;
+}
+
 // ------------ method called for each event  ------------
 void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
@@ -170,8 +279,10 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   numPrimaryVertices = -1;
   if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
 
-  run   = iEvent.id().run();
-  event = iEvent.id().event();
+  trigger = getTriggerBits(iEvent);
+  run     = iEvent.id().run();
+  event   = iEvent.id().event();
+
   dimuon_pdgId = 0;
   mother_pdgId = 0;
   irank = 0;
