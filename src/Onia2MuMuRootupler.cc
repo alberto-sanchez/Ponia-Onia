@@ -193,7 +193,7 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
          ss4<<"HLT_Dimuon8_PsiPrime_Barrel_v"<<version;
          bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
-         ss5<<"HLT_Dimuon0_Upsilon_Barrel_v"<<version;
+         ss5<<"HLT_Dimuon8_Upsilon_Barrel_v"<<version;
          bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
          ss6<<"HLT_Dimuon20_Jpsi_v"<<version;
          bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
