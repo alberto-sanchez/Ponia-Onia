@@ -7,5 +7,6 @@ rootuple = cms.EDAnalyzer('Onia2MuMuRootupler',
                           onia_pdgid = cms.uint32(443),
                           onia_mass_cuts = cms.vdouble(2.2,4.0),
                           isMC = cms.bool(True),
-                          OnlyBest = cms.bool(True)
+                          OnlyBest = cms.bool(True),
+                          OnlyGen = cms.bool(False)
                           )
