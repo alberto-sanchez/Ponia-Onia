@@ -66,6 +66,7 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         std::vector<double> OniaMassCuts_;
 	bool isMC_;
         bool OnlyBest_;
+        bool OnlyGen_;
 
 	UInt_t run;
 	UInt_t event;
@@ -109,30 +110,33 @@ triggerResults_Label(consumes<edm::TriggerResults>(iConfig.getParameter<edm::Inp
 pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
 isMC_(iConfig.getParameter<bool>("isMC")),
-OnlyBest_(iConfig.getParameter<bool>("OnlyBest"))
+OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
+OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
 {
   edm::Service < TFileService > fs;
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
 
-  onia_tree->Branch("run",     &run,     "run/I");
-  onia_tree->Branch("event",   &event,   "event/I");
-  onia_tree->Branch("irank",   &irank,   "irank/I");
-  onia_tree->Branch("trigger", &trigger, "trigger/I");
+  if (!OnlyGen_) {
+    onia_tree->Branch("run",     &run,     "run/I");
+    onia_tree->Branch("event",   &event,   "event/I");
+    onia_tree->Branch("irank",   &irank,   "irank/I");
+    onia_tree->Branch("trigger", &trigger, "trigger/I");
 
-  onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
-  onia_tree->Branch("muonP_p4",  "TLorentzVector", &muonP_p4);
-  onia_tree->Branch("muonN_p4",  "TLorentzVector", &muonN_p4);
+    onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
+    onia_tree->Branch("muonP_p4",  "TLorentzVector", &muonP_p4);
+    onia_tree->Branch("muonN_p4",  "TLorentzVector", &muonN_p4);
 
-  onia_tree->Branch("MassErr",   &MassErr,    "MassErr/F");
-  onia_tree->Branch("vProb",     &vProb,      "vProb/F");
-  onia_tree->Branch("DCA",       &DCA,        "DCA/F");
-  onia_tree->Branch("ppdlPV",    &ppdlPV,     "ppdlPV/F");
-  onia_tree->Branch("ppdlErrPV", &ppdlErrPV,  "ppdlErrPV/F");
-  onia_tree->Branch("cosAlpha",  &cosAlpha,   "cosAlpha/F");
+    onia_tree->Branch("MassErr",   &MassErr,    "MassErr/F");
+    onia_tree->Branch("vProb",     &vProb,      "vProb/F");
+    onia_tree->Branch("DCA",       &DCA,        "DCA/F");
+    onia_tree->Branch("ppdlPV",    &ppdlPV,     "ppdlPV/F");
+    onia_tree->Branch("ppdlErrPV", &ppdlErrPV,  "ppdlErrPV/F");
+    onia_tree->Branch("cosAlpha",  &cosAlpha,   "cosAlpha/F");
 
-  onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/I");
+    onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/I");
+  }
 
-  if (isMC_) {
+  if (isMC_ || OnlyGen_) {
      onia_tree->Branch("mother_pdgId",  &mother_pdgId,     "mother_pdgId/I");
      onia_tree->Branch("dimuon_pdgId",  &dimuon_pdgId,     "dimuon_pdgId/I");
      onia_tree->Branch("gen_dimuon_p4", "TLorentzVector",  &gen_dimuon_p4);
@@ -273,13 +277,15 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
 
   edm::Handle<reco::VertexCollection> primaryVertices_handle;
   iEvent.getByToken(primaryVertices_Label, primaryVertices_handle);
+ 
+  if (!OnlyGen_) {
+    numPrimaryVertices = -1;
+    if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
 
-  numPrimaryVertices = -1;
-  if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
-
-  trigger = getTriggerBits(iEvent);
-  run     = iEvent.id().run();
-  event   = iEvent.id().event();
+    trigger = getTriggerBits(iEvent);
+    run     = iEvent.id().run();
+    event   = iEvent.id().event();
+  }
 
   dimuon_pdgId = 0;
   mother_pdgId = 0;
@@ -294,7 +300,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   edm::Handle<pat::PackedGenParticleCollection> packed;
   iEvent.getByToken(packCands_,  packed);
 
-  if (isMC_ && packed.isValid() && pruned.isValid()) {
+  if ((isMC_ || OnlyGen_) && packed.isValid() && pruned.isValid()) {
      dimuon_pdgId  = 0;
      gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
      int foundit   = 0;
@@ -338,7 +344,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   float OniaMassMax_ = OniaMassCuts_[1];
   float OniaMassMin_ = OniaMassCuts_[0];
 
-  if ( dimuons.isValid() && dimuons->size() > 0) {
+  if ( ! OnlyGen_ && dimuons.isValid() && dimuons->size() > 0) {
      for (pat::CompositeCandidateCollection::const_iterator  dimuonCand = dimuons->begin(); dimuonCand!= dimuons->end(); ++dimuonCand) {
         if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_) {
            dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(), dimuonCand->eta(), dimuonCand->phi(), dimuonCand->mass());
@@ -362,7 +368,8 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
         } 
      }
   } else {
-     std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
+     if (dimuon_pdgId && OnlyGen_) onia_tree->Fill();
+     else std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
   }
 
   dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
