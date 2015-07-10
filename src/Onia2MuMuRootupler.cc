@@ -184,9 +184,9 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if ( triggerResults_handle.isValid() ) { 
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6;
-      for ( int version = 1; version<2; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6;
+      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7;
+      for ( int version = 1; version<3; version ++ ) {
+         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7;
          ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
          bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
          ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
@@ -201,6 +201,8 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
          ss6<<"HLT_Dimuon20_Jpsi_v"<<version;
          bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
+         ss7<<"HLT_Dimuon0_Phi_Barrel_v"<<version;
+         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -261,6 +263,15 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          if ( bit < triggerResults_handle->size() ){
            if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
              itrigger += 64;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_7.size(); i++) {
+         unsigned int bit = bits_7[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 128;
              break;
            }
          }
