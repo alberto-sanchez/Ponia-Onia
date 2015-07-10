@@ -39,6 +39,8 @@ scram b
 
 * Run: (adjust the inputs)
 
+```
 vi HeavyFlavorAnalysis/Skimming/test/runCompactSkim.py
 cmsRun HeavyFlavorAnalysis/Skimming/test/runCompactSkim.py
+```
 
