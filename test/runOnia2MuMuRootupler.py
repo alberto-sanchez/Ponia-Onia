@@ -18,3 +18,6 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True))
 
 process.load('Ponia.Onia.Onia2MuMuRootupler_cfi')
 process.p = cms.Path(process.rootuple)
+
+process.rootuple.isMC = cms.bool(False)                 # is mc?
+process.rootuple.onia_mass_cuts = cms.vdouble(2.,4.)    # you may need to adjust this
