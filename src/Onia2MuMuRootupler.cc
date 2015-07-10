@@ -158,7 +158,7 @@ const reco::Candidate* Onia2MuMuRootupler::GetAncestor(const reco::Candidate* p)
       if  ((p->mother(0))->pdgId() == p->pdgId()) return GetAncestor(p->mother(0));
       else return p->mother(0);
    }
-   std::cout << "GetAncestor: Inconsistet ancestor, particle does not have a mother " << std::endl;
+   //std::cout << "GetAncestor: Inconsistet ancestor, particle does not have a mother " << std::endl;
    return p;
 }
 
@@ -338,7 +338,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      } // for (size
 
      // sanity check
-     if ( ! dimuon_pdgId ) std::cout << "Onia2MuMuRootupler: does not found the given decay " << run << "," << event << std::endl;
+     //if ( ! dimuon_pdgId ) std::cout << "Onia2MuMuRootupler: does not found the given decay " << run << "," << event << std::endl;
   }  // end if isMC
 
   float OniaMassMax_ = OniaMassCuts_[1];
@@ -369,7 +369,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      }
   } else {
      if (dimuon_pdgId && OnlyGen_) onia_tree->Fill();
-     else std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
+     //else std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
   }
 
   dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
