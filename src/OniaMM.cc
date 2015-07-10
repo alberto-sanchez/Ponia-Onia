@@ -68,8 +68,8 @@ private:
 OniaMM::OniaMM(const edm::ParameterSet& iConfig) {
 	edm::Service<TFileService> fs;
 	gen_tree = fs->make<TTree>("GenTree","Tree of genParticles");
-        gen_tree->Branch("mom_id",    &mom_id,          "mom_id/I");
-        gen_tree->Branch("onia_id",   &onia_id,         "onia_id/I");
+        gen_tree->Branch("mother_pdgId",  &mom_id,          "mom_id/I");
+        gen_tree->Branch("dimuon_pdgId",  &onia_id,         "onia_id/I");
 	gen_tree->Branch("gen_muonP_p4",  "TLorentzVector", &muonP_p4);
 	gen_tree->Branch("gen_muonM_p4",  "TLorentzVector", &muonM_p4);
         gen_tree->Branch("gen_dimuon_p4", "TLorentzVector", &dimuon_p4);
