@@ -71,7 +71,8 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
 	UInt_t run;
 	UInt_t event;
         Int_t  irank;
-        UInt_t trigger; 
+        UInt_t trigger;
+        Int_t  charge; 
 
 	TLorentzVector dimuon_p4;
 	TLorentzVector muonP_p4;
@@ -82,7 +83,11 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         Float_t DCA;
         Float_t ppdlPV;
         Float_t ppdlErrPV;
+        Float_t ppdlBS;
+        Float_t ppdlErrBS;
         Float_t cosAlpha;
+        Float_t lxyPV;
+        Float_t lxyBS;
 
 	Int_t numPrimaryVertices;
 
@@ -121,6 +126,7 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
     onia_tree->Branch("event",   &event,   "event/I");
     onia_tree->Branch("irank",   &irank,   "irank/I");
     onia_tree->Branch("trigger", &trigger, "trigger/I");
+    onia_tree->Branch("charge",  &charge,  "charge/I");
 
     onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
     onia_tree->Branch("muonP_p4",  "TLorentzVector", &muonP_p4);
@@ -131,7 +137,11 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
     onia_tree->Branch("DCA",       &DCA,        "DCA/F");
     onia_tree->Branch("ppdlPV",    &ppdlPV,     "ppdlPV/F");
     onia_tree->Branch("ppdlErrPV", &ppdlErrPV,  "ppdlErrPV/F");
+    onia_tree->Branch("ppdlBS",    &ppdlBS,     "ppdlBS/F");
+    onia_tree->Branch("ppdlErrBS", &ppdlErrBS,  "ppdlErrBS/F");
     onia_tree->Branch("cosAlpha",  &cosAlpha,   "cosAlpha/F");
+    onia_tree->Branch("lxyPV",     &lxyPV,      "lxyPV/F");
+    onia_tree->Branch("lxyBS",     &lxyBS,      "lxyBS/F");
 
     onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/I");
   }
@@ -372,7 +382,13 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
            DCA = dimuonCand->userFloat("DCA");
            ppdlPV = dimuonCand->userFloat("ppdlPV");
            ppdlErrPV = dimuonCand->userFloat("ppdlErrPV");
+           ppdlBS = dimuonCand->userFloat("ppdlBS");
+           ppdlErrBS = dimuonCand->userFloat("ppdlErrBS");
            cosAlpha = dimuonCand->userFloat("cosAlpha");
+           charge = dimuonCand->charge(); 
+           TVector3 pperp(dimuonCand->px(), dimuonCand->py(), 0);
+           lxyPV = ppdlPV * pperp.Perp() / dimuonCand->mass();
+           lxyBS = ppdlBS * pperp.Perp() / dimuonCand->mass();
            irank++;
            onia_tree->Fill();
            if (OnlyBest_) break;
