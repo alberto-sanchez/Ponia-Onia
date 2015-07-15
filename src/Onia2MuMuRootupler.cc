@@ -367,7 +367,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
 
   if ( ! OnlyGen_ && dimuons.isValid() && dimuons->size() > 0) {
      for (pat::CompositeCandidateCollection::const_iterator  dimuonCand = dimuons->begin(); dimuonCand!= dimuons->end(); ++dimuonCand) {
-        if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_) {
+        if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0) {
            dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(), dimuonCand->eta(), dimuonCand->phi(), dimuonCand->mass());
            reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
            reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
@@ -395,7 +395,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
         } 
      }
   } else {
-     if (dimuon_pdgId && OnlyGen_) onia_tree->Fill();
+     if (dimuon_pdgId && (OnlyGen_ || isMC_)) onia_tree->Fill();
      //else std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
   }
 
