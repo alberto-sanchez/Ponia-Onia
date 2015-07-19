@@ -122,10 +122,10 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
 
   if (!OnlyGen_) {
-    onia_tree->Branch("run",     &run,     "run/I");
-    onia_tree->Branch("event",   &event,   "event/I");
+    onia_tree->Branch("run",     &run,     "run/i");
+    onia_tree->Branch("event",   &event,   "event/i");
     onia_tree->Branch("irank",   &irank,   "irank/I");
-    onia_tree->Branch("trigger", &trigger, "trigger/I");
+    onia_tree->Branch("trigger", &trigger, "trigger/i");
     onia_tree->Branch("charge",  &charge,  "charge/I");
 
     onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
