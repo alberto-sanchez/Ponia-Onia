@@ -68,11 +68,12 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         bool OnlyBest_;
         bool OnlyGen_;
 
-	UInt_t run;
-	UInt_t event;
-        Int_t  irank;
-        UInt_t trigger;
-        Int_t  charge; 
+	UInt_t    run;
+	ULong64_t event;
+        UInt_t    lumiblock;
+        Int_t     irank;
+        UInt_t    trigger;
+        Int_t     charge; 
 
 	TLorentzVector dimuon_p4;
 	TLorentzVector muonP_p4;
@@ -122,11 +123,12 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
 
   if (!OnlyGen_) {
-    onia_tree->Branch("run",     &run,     "run/i");
-    onia_tree->Branch("event",   &event,   "event/i");
-    onia_tree->Branch("irank",   &irank,   "irank/I");
-    onia_tree->Branch("trigger", &trigger, "trigger/i");
-    onia_tree->Branch("charge",  &charge,  "charge/I");
+    onia_tree->Branch("run",      &run,      "run/i");
+    onia_tree->Branch("event",    &event,    "event/l");
+    onia_tree->Branch("lumiblock",&lumiblock,"lumiblock/i");
+    onia_tree->Branch("irank",    &irank,    "irank/I");
+    onia_tree->Branch("trigger",  &trigger,  "trigger/i");
+    onia_tree->Branch("charge",   &charge,   "charge/I");
 
     onia_tree->Branch("dimuon_p4", "TLorentzVector", &dimuon_p4);
     onia_tree->Branch("muonP_p4",  "TLorentzVector", &muonP_p4);
@@ -306,6 +308,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
     trigger = getTriggerBits(iEvent);
     run     = iEvent.id().run();
     event   = iEvent.id().event();
+    lumiblock = iEvent.id().luminosityBlock();
   }
 
   dimuon_pdgId = 0;
