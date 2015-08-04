@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 rootuple = cms.EDAnalyzer('Onia2MuMuRootupler',
                           dimuons = cms.InputTag("onia2MuMuPAT"),
+                          muons = cms.InputTag("replaceme"),
                           primaryVertices = cms.InputTag("offlinePrimaryVertices"),
                           TriggerResults = cms.InputTag("TriggerResults", "", "HLT"),
                           onia_pdgid = cms.uint32(443),
