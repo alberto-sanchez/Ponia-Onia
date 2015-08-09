@@ -407,14 +407,33 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
     } else {
       std::cout << "Onia2MuMuRootupler: (" << run << "," << event << ") -> "; 
       if ( muons.isValid() && muons->size() > 0 ) {
+        int mcharge1 = 0, mcharge2 = 0;
+        reco::Candidate::LorentzVector v1, v2;
         for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {
-           reco::Candidate::LorentzVector vP = muonCand->p4();
-           if (nmuons == 0) muonP_p4.SetPtEtaPhiM(vP.pt(),vP.eta(),vP.phi(),vP.mass());
-           if (nmuons == 1) muonN_p4.SetPtEtaPhiM(vP.pt(),vP.eta(),vP.phi(),vP.mass());
-           nmuons++;
-           std::cout << "pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+          nmuons++;
+          if (nmuons == 1) { 
+            mcharge1 = muonCand->charge();
+            v1 = muonCand->p4();
+            std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+          } else {
+            if ( mcharge1*muonCand->charge() < 0  && mcharge2 == 0 ) { 
+              mcharge2 = muonCand->charge();
+              v2 = muonCand->p4();
+              std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+              nmuons = 2;
+              break;    // we store only 2 muons
+            } else std::cout << "{" << muonCand->charge() << "} pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+          }
         }
-        std::cout <<  " gen pt(+) = " << gen_muonP_p4.Pt() << ", gen pt(-) = " << gen_muonM_p4.Pt() << std::endl;
+        if ( mcharge1 > 0 ) { 
+          muonP_p4.SetPtEtaPhiM(v1.pt(),v1.eta(),v1.phi(),v1.mass());
+          if (mcharge2 < 0 ) muonN_p4.SetPtEtaPhiM(v2.pt(),v2.eta(),v2.phi(),v2.mass());
+        } else {
+          muonN_p4.SetPtEtaPhiM(v1.pt(),v1.eta(),v1.phi(),v1.mass());
+          if (mcharge2 > 0 ) muonP_p4.SetPtEtaPhiM(v2.pt(),v2.eta(),v2.phi(),v2.mass());
+        }
+        std::cout << std::endl << " gen pt(+) = " << gen_muonP_p4.Pt() << ", gen pt(-) = " << gen_muonM_p4.Pt();
+        std::cout <<  ", pt(+) = " << muonP_p4.Pt() << ", pt(-) = " << muonN_p4.Pt() << std::endl;
       } else std::cout << "there are " << nmuons << " muons in this event" << std::endl;
     }
   }  // !OnlyGen_
