@@ -202,9 +202,9 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if ( triggerResults_handle.isValid() ) { 
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7;
+      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b;
       for ( int version = 1; version<3; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7;
+         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb;
          ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
          bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
          ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
@@ -221,6 +221,15 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
          ss7<<"HLT_Dimuon0_Phi_Barrel_v"<<version;
          bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
+
+         ss8<<"HLT_HIL1DoubleMu0_v"<<version;
+         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
+         ss9<<"HLT_HIL2DoubleMu0_v"<<version;
+         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
+         ssa<<"HLT_HIL2Mu3_v"<<version;
+         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
+         ssb<<"HLT_HIL3Mu3_v"<<version;
+         bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label().c_str()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -290,6 +299,43 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          if ( bit < triggerResults_handle->size() ){
            if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
              itrigger += 128;
+             break;
+           }
+         }
+      }
+
+      for (unsigned int i=0; i<bits_8.size(); i++) {
+         unsigned int bit = bits_8[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 256;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_9.size(); i++) {
+         unsigned int bit = bits_9[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 512;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_a.size(); i++) {
+         unsigned int bit = bits_a[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 1024;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_b.size(); i++) {
+         unsigned int bit = bits_b[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 2048;
              break;
            }
          }
