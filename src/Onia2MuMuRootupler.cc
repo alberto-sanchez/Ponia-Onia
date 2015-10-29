@@ -28,6 +28,7 @@
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
+#include "MuonAnalysis/MuonAssociators/interface/PropagateToMuon.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TLorentzVector.h"
@@ -48,12 +49,14 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         UInt_t getTriggerBits(const edm::Event &);
         bool   isAncestor(const reco::Candidate *, const reco::Candidate *);
         const  reco::Candidate* GetAncestor(const reco::Candidate *);
+        UInt_t isTriggerMatched(const pat::CompositeCandidate *);
+        void   muonStationDistance (const pat::CompositeCandidate *);
 
 	virtual void beginJob();
 	virtual void analyze(const edm::Event &, const edm::EventSetup &);
 	virtual void endJob();
 
-	virtual void beginRun(edm::Run const &, edm::EventSetup const &);
+	virtual void beginRun(const edm::Run &, const edm::EventSetup &);
 	virtual void endRun(edm::Run const &, edm::EventSetup const &);
 	virtual void beginLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
 	virtual void endLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
@@ -64,15 +67,20 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         edm::EDGetTokenT<pat::MuonCollection> muon_Label;
         edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
         edm::EDGetTokenT<edm::TriggerResults> triggerResults_Label;
+
         int  pdgid_;
         std::vector<double> OniaMassCuts_;
 	bool isMC_;
         bool OnlyBest_;
         bool OnlyGen_;
+        std::vector<std::string> HLTLastFilters;
+
+        PropagateToMuon prop1_, prop2_; 
 
 	UInt_t    run;
 	ULong64_t event;
         UInt_t    lumiblock;
+        UInt_t    ismatched;
         UInt_t    nonia;
         UInt_t    nmuons;
         UInt_t    trigger;
@@ -92,6 +100,13 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         Float_t cosAlpha;
         Float_t lxyPV;
         Float_t lxyBS;
+
+        Float_t JpsiDistM1;
+        Float_t JpsiDphiM1;
+        Float_t JpsiDrM1;
+        Float_t JpsiDistM2;
+        Float_t JpsiDphiM2;
+        Float_t JpsiDrM2;
 
 	UInt_t numPrimaryVertices;
 
@@ -121,7 +136,10 @@ pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
 isMC_(iConfig.getParameter<bool>("isMC")),
 OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
-OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
+OnlyGen_(iConfig.getParameter<bool>("OnlyGen")),
+HLTLastFilters(iConfig.getParameter<std::vector<std::string>>("HLTLastFilters")),
+prop1_(iConfig.getParameter<edm::ParameterSet>("propagatorStation1")),
+prop2_(iConfig.getParameter<edm::ParameterSet>("propagatorStation2"))
 {
   edm::Service < TFileService > fs;
   onia_tree = fs->make < TTree > ("oniaTree", "Tree of Onia2MuMu");
@@ -129,6 +147,7 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
   onia_tree->Branch("run",      &run,      "run/i");
   onia_tree->Branch("event",    &event,    "event/l");
   onia_tree->Branch("lumiblock",&lumiblock,"lumiblock/i");
+  onia_tree->Branch("ismatched",&ismatched,"ismatched/i");
 
   if (!OnlyGen_) {
     onia_tree->Branch("nonia",    &nonia,    "nonia/i");
@@ -150,6 +169,13 @@ OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
     onia_tree->Branch("cosAlpha",  &cosAlpha,   "cosAlpha/F");
     onia_tree->Branch("lxyPV",     &lxyPV,      "lxyPV/F");
     onia_tree->Branch("lxyBS",     &lxyBS,      "lxyBS/F");
+
+    onia_tree->Branch("JpsiDistM1",&JpsiDistM1,  "JpsiDistM1/F");
+    onia_tree->Branch("JpsiDphiM1",&JpsiDphiM1,  "JpsiDphiM1/F");
+    onia_tree->Branch("JpsiDrM1",  &JpsiDrM1,    "JpsiDrM1/F");
+    onia_tree->Branch("JpsiDistM2",&JpsiDistM2,  "JpsiDistM2/F");
+    onia_tree->Branch("JpsiDphiM2",&JpsiDphiM2,  "JpsiDphiM2/F");
+    onia_tree->Branch("JpsiDrM2",  &JpsiDrM2,    "JpsiDrM2/F");
 
     onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/i");
   }
@@ -358,7 +384,8 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
 
   run       = iEvent.id().run();
   event     = iEvent.id().event();
-  lumiblock = iEvent.id().luminosityBlock(); 
+  lumiblock = iEvent.id().luminosityBlock();
+  ismatched = 0;
 
   numPrimaryVertices = 0;
   if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
@@ -416,6 +443,9 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   float OniaMassMax_ = OniaMassCuts_[1];
   float OniaMassMin_ = OniaMassCuts_[0];
 
+  JpsiDistM1 = JpsiDphiM1 = JpsiDrM1 = vProb = -99.;
+  JpsiDistM2 = JpsiDphiM2 = JpsiDrM2 = vProb = -99.;
+
   bool already_stored = false;
   if ( ! OnlyGen_ ) { // we will look for dimuons, then for muons
     if ( dimuons.isValid() && dimuons->size() > 0) {
@@ -442,6 +472,8 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           TVector3 pperp(dimuonCand->px(),dimuonCand->py(),0);
           lxyPV = ppdlPV * pperp.Perp() / dimuonCand->mass();
           lxyBS = ppdlBS * pperp.Perp() / dimuonCand->mass();
+          ismatched = isTriggerMatched(&*dimuonCand);
+          this->muonStationDistance(&*dimuonCand);
           nonia++;
           if (OnlyBest_) break;
           else { 
@@ -491,6 +523,50 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   }
 }
 
+// Look if dimuon candidate is trigger matched
+UInt_t Onia2MuMuRootupler::isTriggerMatched(const pat::CompositeCandidate *diMuon_cand) {
+  const pat::Muon* muon1 = dynamic_cast<const pat::Muon*>(diMuon_cand->daughter("muon1"));
+  const pat::Muon* muon2 = dynamic_cast<const pat::Muon*>(diMuon_cand->daughter("muon2"));
+  UInt_t matched = 0;  // if no list is given, is not matched 
+
+// if matched a given trigger, set the bit, in the same order as listed
+  for (unsigned int iTr = 0; iTr<HLTLastFilters.size(); iTr++ ) {
+     const pat::TriggerObjectStandAloneCollection mu1HLTMatches = muon1->triggerObjectMatchesByFilter(HLTLastFilters[iTr]);
+     const pat::TriggerObjectStandAloneCollection mu2HLTMatches = muon2->triggerObjectMatchesByFilter(HLTLastFilters[iTr]);
+     if (mu1HLTMatches.size() > 0 && mu2HLTMatches.size() > 0) matched += (1<<iTr); 
+  }
+  return matched;
+}
+
+void Onia2MuMuRootupler::muonStationDistance (const pat::CompositeCandidate* aCand) {
+  
+   const pat::Muon* muon1 = dynamic_cast<const pat::Muon*>(aCand->daughter("muon1"));
+   const pat::Muon* muon2 = dynamic_cast<const pat::Muon*>(aCand->daughter("muon2"));
+   const reco::Candidate &d1 = *muon1; 
+   const reco::Candidate &d2 = *muon2;
+   const reco::RecoCandidate *mu1 = dynamic_cast<const reco::RecoCandidate *>(&d1);
+   const reco::RecoCandidate *mu2 = dynamic_cast<const reco::RecoCandidate *>(&d2);
+    
+   // Propagate to station 1
+   TrajectoryStateOnSurface prop1_Stat1 = prop1_.extrapolate(*mu1);
+   TrajectoryStateOnSurface prop2_Stat1 = prop1_.extrapolate(*mu2);
+   if (prop1_Stat1.isValid() && prop2_Stat1.isValid()) {
+     JpsiDphiM1 = deltaPhi<float>(prop1_Stat1.globalPosition().phi(), prop2_Stat1.globalPosition().phi());
+     JpsiDrM1   = hypot(JpsiDphiM1, std::abs<float>(prop1_Stat1.globalPosition().eta() - prop2_Stat1.globalPosition().eta()));
+     JpsiDistM1 = (prop1_Stat1.globalPosition()-prop2_Stat1.globalPosition()).mag();
+   }
+   // Propagate to station 2
+   TrajectoryStateOnSurface prop1_Stat2 = prop2_.extrapolate(*mu1);
+   TrajectoryStateOnSurface prop2_Stat2 = prop2_.extrapolate(*mu2);
+   if (prop1_Stat2.isValid() && prop2_Stat2.isValid()) {
+     JpsiDphiM2 = deltaPhi<float>(prop1_Stat2.globalPosition().phi(), prop2_Stat2.globalPosition().phi());
+     JpsiDrM2   = hypot(JpsiDphiM2, std::abs<float>(prop1_Stat2.globalPosition().eta() - prop2_Stat2.globalPosition().eta()));
+     JpsiDistM2 = (prop1_Stat2.globalPosition()-prop2_Stat2.globalPosition()).mag();
+   }
+
+}
+
+
 // ------------ method called once each job just before starting event loop  ------------
 void Onia2MuMuRootupler::beginJob() {}
 
@@ -498,7 +574,10 @@ void Onia2MuMuRootupler::beginJob() {}
 void Onia2MuMuRootupler::endJob() {}
 
 // ------------ method called when starting to processes a run  ------------
-void Onia2MuMuRootupler::beginRun(edm::Run const &, edm::EventSetup const &) {}
+void Onia2MuMuRootupler::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
+    prop1_.init(iSetup);
+    prop2_.init(iSetup);
+}
 
 // ------------ method called when ending the processing of a run  ------------
 void Onia2MuMuRootupler::endRun(edm::Run const &, edm::EventSetup const &) {}
