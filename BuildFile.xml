@@ -3,4 +3,5 @@
 <use name="FWCore/ParameterSet"/>
 <use name="PhysicsTools/UtilAlgos"/>
 <use name="FWCore/ServiceRegistry"/>
+<use name="MuonAnalysis/MuonAssociators"/>
 <flags EDM_PLUGIN="1"/>
