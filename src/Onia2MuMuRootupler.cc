@@ -482,9 +482,9 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           }
         } 
       }
-    } else {
+    } //..else {
       //std::cout << "Onia2MuMuRootupler: (" << run << "," << event << ") -> "; 
-      if ( muons.isValid() && muons->size() > 0 ) {
+      if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
         int mcharge1 = 0, mcharge2 = 0;
         reco::Candidate::LorentzVector v1, v2;
         for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {
@@ -513,7 +513,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
         //std::cout << std::endl << " gen pt(+) = " << gen_muonP_p4.Pt() << ", gen pt(-) = " << gen_muonM_p4.Pt();
         //std::cout <<  ", pt(+) = " << muonP_p4.Pt() << ", pt(-) = " << muonN_p4.Pt() << std::endl;
       } //else std::cout << "there are " << nmuons << " muons in this event" << std::endl;
-    }
+    //..}
   }  // !OnlyGen_
 
   if ( !already_stored ) {  // we have to make sure, we are not double storing an combination
