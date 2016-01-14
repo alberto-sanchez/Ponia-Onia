@@ -462,7 +462,8 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           muonN_p4.SetPtEtaPhiM(vM.pt(),vM.eta(),vM.phi(),vM.mass());
           MassErr = dimuonCand->userFloat("MassErr");
           vProb = dimuonCand->userFloat("vProb");
-          DCA = dimuonCand->userFloat("DCA");
+          DCA = -1.;
+          if (dimuonCand->hasUserFloat("DCA"))  DCA = dimuonCand->userFloat("DCA");
           ppdlPV = dimuonCand->userFloat("ppdlPV");
           ppdlErrPV = dimuonCand->userFloat("ppdlErrPV");
           ppdlBS = dimuonCand->userFloat("ppdlBS");
