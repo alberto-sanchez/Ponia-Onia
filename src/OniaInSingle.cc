@@ -580,7 +580,8 @@ void OniaInSingle::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
   if ( ! OnlyGen_ ) { // we will look for dimuons, then for muons
     if ( dimuons.isValid() && dimuons->size() > 0) {
       for ( pat::CompositeCandidateCollection::const_iterator dimuonCand = dimuons->begin(); dimuonCand != dimuons->end(); ++dimuonCand ) {
-        if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0) {
+        vProb = dimuonCand->userFloat("vProb");
+        if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0 && vProb > -1.) {
           dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(),dimuonCand->eta(),dimuonCand->phi(),dimuonCand->mass());
           reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
           reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
@@ -592,7 +593,8 @@ void OniaInSingle::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
           muonN_p4.SetPtEtaPhiM(vM.pt(),vM.eta(),vM.phi(),vM.mass());
           MassErr = dimuonCand->userFloat("MassErr");
           vProb = dimuonCand->userFloat("vProb");
-          DCA = dimuonCand->userFloat("DCA");
+          DCA = -1.;
+          if (dimuonCand->hasUserFloat("DCA")) DCA = dimuonCand->userFloat("DCA");
           ppdlPV = dimuonCand->userFloat("ppdlPV");
           ppdlErrPV = dimuonCand->userFloat("ppdlErrPV");
           ppdlBS = dimuonCand->userFloat("ppdlBS");
@@ -640,7 +642,7 @@ void OniaInSingle::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
     }
   }  // !OnlyGen_
 
-  if ( !already_stored ) {  // we have to make sure, we are not double storing an combination
+  if ( !already_stored ) {  // we have to make sure, we are not double storing any combination
     if ( !isMC_ ) {
       if ( nonia > 0 ) onia_tree->Fill();   // if not MC filter out
     } else onia_tree->Fill();
