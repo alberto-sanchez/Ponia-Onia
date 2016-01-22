@@ -10,8 +10,8 @@ The Onia2MuMu Rootupler. This package is mean to be run after the BPH CompactSki
 ```
 export SCRAM_ARCH=slc6_amd64_gcc491
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-cmsrel CMSSW_7_4_6_patch6
-cd CMSSW_7_4_6_patch6/src/
+cmsrel CMSSW_7_4_15_patch1
+cd CMSSW_7_4_15_patch1/src/
 cmsenv
 git clone https://github.com/alberto-sanchez/Ponia-Onia.git Ponia/Onia
 scram b
@@ -30,14 +30,14 @@ cmsRun Ponia/Onia/test/runOnia2MuMuRootupler.py
 ```
 export SCRAM_ARCH=slc6_amd64_gcc491
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-cmsrel CMSSW_7_4_6_patch6
-cd CMSSW_7_4_6_patch6/src/
+cmsrel CMSSW_7_4_15_patch1
+cd CMSSW_7_4_15_patch1/src/
 cmsenv
 git cms-merge-topic alberto-sanchez:onia2mumu-74x
 scram b
 ``` 
 
-* Run: (adjust the inputs)
+* Run: (adjust the inputs, be aware this should run on AOD data files)
 
 ```
 vi HeavyFlavorAnalysis/Skimming/test/runCompactSkim.py
