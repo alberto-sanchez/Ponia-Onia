@@ -228,9 +228,9 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if ( triggerResults_handle.isValid() ) { 
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b;
-      for ( int version = 1; version<3; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb;
+      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b, bits_c;
+      for ( int version = 1; version<4; version ++ ) {
+         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb,ssc;
          ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
          bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
          ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
@@ -256,6 +256,8 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
          ssb<<"HLT_HIL3Mu3_v"<<version;
          bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label().c_str()));
+         ssc<<"HLT_Mu16_TkMu0_dEta18_Onia_v"<<version;
+         bits_c.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssc.str()).label().c_str()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -366,6 +368,16 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
            }
          }
       }
+      for (unsigned int i=0; i<bits_c.size(); i++) {
+         unsigned int bit = bits_c[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 4096;
+             break;
+           }
+         }
+      }
+
    }
    return itrigger;
 }
