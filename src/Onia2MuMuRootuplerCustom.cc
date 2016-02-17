@@ -396,7 +396,7 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
    return itrigger;
 }
 
-UInt_t OniaInSingle::getSingleTriggerBits(const edm::Event& iEvent ) {
+UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent ) {
    UInt_t itrigger = 0;
    edm::Handle<edm::TriggerResults> triggerResults_handle;
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
