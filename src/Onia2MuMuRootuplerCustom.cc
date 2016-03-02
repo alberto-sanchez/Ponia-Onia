@@ -402,9 +402,9 @@ UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent )
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if ( triggerResults_handle.isValid() ) {
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9;
+      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a;
       for ( int version = 1; version<5; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9;
+         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa;
          ss0<<"HLT_Mu20_v"<<version;
          bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
          ss1<<"HLT_Mu24_eta2p1_v"<<version;
@@ -425,6 +425,8 @@ UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent )
          bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
          ss9<<"HLT_Mu34_v"<<version;
          bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
+         ssa<<"HLT_Mu7p5_Track2_Jpsi_v"<<version;
+         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -512,6 +514,15 @@ UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent )
          if ( bit < triggerResults_handle->size() ){
            if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
              itrigger += 512;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_a.size(); i++) {
+         unsigned int bit = bits_a[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 1024;
              break;
            }
          }
