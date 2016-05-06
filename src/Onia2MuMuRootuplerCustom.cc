@@ -231,9 +231,9 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
    iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if ( triggerResults_handle.isValid() ) { 
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b, bits_c, bits_d;
+      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b, bits_c, bits_d, bits_e;
       for ( int version = 1; version<4; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb,ssc,ssd;
+         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb,ssc,ssd,sse;
          ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
          bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
          ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
@@ -263,6 +263,8 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
          bits_c.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssc.str()).label().c_str()));
          ssd<<"HLT_Mu25_TkMu0_dEta18_Onia_v"<<version;
          bits_d.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssd.str()).label().c_str()));
+         sse<<"HLT_Mu16_TkMu0_dEta18_Phi_v"<<version;
+         bits_e.push_back(TheTriggerNames.triggerIndex( edm::InputTag(sse.str()).label().c_str()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -387,6 +389,15 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
          if ( bit < triggerResults_handle->size() ){
            if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
              itrigger += 8192;
+             break;
+           }
+         }
+      }
+      for (unsigned int i=0; i<bits_e.size(); i++) {
+         unsigned int bit = bits_e[i];
+         if ( bit < triggerResults_handle->size() ){
+           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
+             itrigger += 16384;
              break;
            }
          }
@@ -645,8 +656,7 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
           }
         } 
       }
-    } //..else {
-      //std::cout << "Onia2MuMuRootuplerCustom: (" << run << "," << event << ") -> "; 
+    } 
       if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
         int mcharge1 = 0, mcharge2 = 0;
         reco::Candidate::LorentzVector v1, v2;
@@ -655,15 +665,13 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
           if (nmuons == 1) { 
             mcharge1 = muonCand->charge();
             v1 = muonCand->p4();
-            //std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
           } else {
             if ( mcharge1*muonCand->charge() < 0  && mcharge2 == 0 ) { 
               mcharge2 = muonCand->charge();
               v2 = muonCand->p4();
-              //std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
               nmuons = 2;
               break;    // we store only 2 muons
-            } //else std::cout << "{" << muonCand->charge() << "} pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+            } 
           }
         }
         if ( mcharge1 > 0 ) { 
@@ -673,10 +681,7 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
           muonN_p4.SetPtEtaPhiM(v1.pt(),v1.eta(),v1.phi(),v1.mass());
           if (mcharge2 > 0 ) muonP_p4.SetPtEtaPhiM(v2.pt(),v2.eta(),v2.phi(),v2.mass());
         }
-        //std::cout << std::endl << " gen pt(+) = " << gen_muonP_p4.Pt() << ", gen pt(-) = " << gen_muonM_p4.Pt();
-        //std::cout <<  ", pt(+) = " << muonP_p4.Pt() << ", pt(-) = " << muonN_p4.Pt() << std::endl;
-      } //else std::cout << "there are " << nmuons << " muons in this event" << std::endl;
-    //..}
+      }
   }  // !OnlyGen_
 
   if ( !already_stored ) {  // we have to make sure, we are not double storing an combination
