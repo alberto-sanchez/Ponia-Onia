@@ -63,7 +63,9 @@ private:
   TLorentzVector gen_dimuon_p4;
   Int_t mother_pdgId,dimuon_pdgId;
   TTree* onia_tree;
-  
+
+  edm::EDGetTokenT<reco::GenParticleCollection> genCands_; 
+ 
 };
 
 //
@@ -86,6 +88,8 @@ pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid"))
   onia_tree->Branch("gen_dimuon_p4", "TLorentzVector",  &gen_dimuon_p4);
   onia_tree->Branch("gen_muonP_p4",  "TLorentzVector",  &gen_muonP_p4);
   onia_tree->Branch("gen_muonN_p4",  "TLorentzVector",  &gen_muonM_p4);
+
+  genCands_ = consumes<reco::GenParticleCollection>((edm::InputTag)"genParticles");
 }
 
 OniaMM::~OniaMM() {}
@@ -121,7 +125,8 @@ const reco::Candidate* OniaMM::GetStableParticle(const reco::Candidate* p) {
 void OniaMM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   edm::Handle<reco::GenParticleCollection> GenParticles;
-  iEvent.getByLabel("genParticles",GenParticles);
+  iEvent.getByToken(genCands_, GenParticles);
+  //iEvent.getByLabel("genParticles",GenParticles);
 
   run       = iEvent.id().run();
   event     = iEvent.id().event();
