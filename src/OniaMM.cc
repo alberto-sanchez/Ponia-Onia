@@ -58,6 +58,7 @@ private:
   UInt_t    run;
   ULong64_t event;
   UInt_t    lumiblock;
+  UInt_t    ncombo;
   TLorentzVector gen_muonP_p4;
   TLorentzVector gen_muonM_p4;
   TLorentzVector gen_dimuon_p4;
@@ -81,6 +82,7 @@ pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid"))
   onia_tree->Branch("run",      &run,      "run/i");
   onia_tree->Branch("event",    &event,    "event/l");
   onia_tree->Branch("lumiblock",&lumiblock,"lumiblock/i");
+  onia_tree->Branch("ncombo",   &ncombo,   "ncombo/i");
 
   std::cout << "Onia2MuMuRootupler::Onia2MuMuRootupler: Onia id " << pdgid_ << std::endl;
   onia_tree->Branch("mother_pdgId",  &mother_pdgId,     "mother_pdgId/I");
@@ -139,6 +141,8 @@ void OniaMM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   gen_muonP_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_muonM_p4.SetPtEtaPhiM(0.,0.,0.,0.);
 
+  ncombo = 0;
+
   if ( GenParticles.isValid() ) {
 
      for ( reco::GenParticleCollection::const_iterator itParticle = GenParticles->begin(); itParticle != GenParticles->end(); ++itParticle ) {
@@ -175,19 +179,23 @@ void OniaMM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
             if ( foundit == 3 ) {
                mother_pdgId = GetAncestor(onia)->pdgId();
                gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;
-               break;
+               //break;
             } else {
                foundit = 0;
                dimuon_pdgId = 0;
                mother_pdgId = 0;
             }
          }  // if ( pdg
+         if (foundit == 3) {
+            onia_tree->Fill();
+            ncombo++; 
+         }
 
       }   // for ( reco
   }     // if (GenPar
   // sanity check
-  if ( ! dimuon_pdgId ) std::cout << "OniaMM: Decay not found [" << iEvent.id().run() << "," << iEvent.id().event() << "]" << std::endl; 
-  else onia_tree ->Fill();
+  if ( !ncombo ) std::cout << "OniaMM: Decay not found [" << iEvent.id().run() << "," << iEvent.id().event() << "]" << std::endl; 
+  //else onia_tree ->Fill();
 }
 
 // ------------ method called once each job just before starting event loop  ------------
