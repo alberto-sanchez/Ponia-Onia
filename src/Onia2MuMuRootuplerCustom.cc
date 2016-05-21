@@ -110,6 +110,12 @@ class Onia2MuMuRootuplerCustom:public edm::EDAnalyzer {
         Float_t JpsiDphiM2;
         Float_t JpsiDrM2;
 
+        Float_t numberOfInnerLostHitsM1;
+        Float_t numberOfInnerLostHitsM2;
+
+        Float_t numberOfOuterLostHitsM1;
+        Float_t numberOfOuterLostHitsM2;
+
 	UInt_t numPrimaryVertices;
 
 	TTree *onia_tree;
@@ -179,6 +185,11 @@ prop2_(iConfig.getParameter<edm::ParameterSet>("propagatorStation2"))
     onia_tree->Branch("JpsiDistM2",&JpsiDistM2,  "JpsiDistM2/F");
     onia_tree->Branch("JpsiDphiM2",&JpsiDphiM2,  "JpsiDphiM2/F");
     onia_tree->Branch("JpsiDrM2",  &JpsiDrM2,    "JpsiDrM2/F");
+
+    onia_tree->Branch("numberOfInnerLostHitsM1", &numberOfInnerLostHitsM1, "numberOfInnerLostHitsM1/F");
+    onia_tree->Branch("numberOfInnerLostHitsM2", &numberOfInnerLostHitsM2, "numberOfInnerLostHitsM2/F");
+    onia_tree->Branch("numberOfOuterLostHitsM1", &numberOfOuterLostHitsM1, "numberOfOuterLostHitsM1/F");
+    onia_tree->Branch("numberOfOuterLostHitsM2", &numberOfOuterLostHitsM2, "numberOfOuterLostHitsM2/F");
 
     onia_tree->Branch("numPrimaryVertices", &numPrimaryVertices, "numPrimaryVertices/i");
   }
@@ -624,6 +635,7 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
     if ( dimuons.isValid() && dimuons->size() > 0) {
       for ( pat::CompositeCandidateCollection::const_iterator dimuonCand = dimuons->begin(); dimuonCand != dimuons->end(); ++dimuonCand ) {
         if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0) {
+
           dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(),dimuonCand->eta(),dimuonCand->phi(),dimuonCand->mass());
           reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
           reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
@@ -648,6 +660,18 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
           lxyBS = ppdlBS * pperp.Perp() / dimuonCand->mass();
           ismatched = isTriggerMatched(&*dimuonCand);
           this->muonStationDistance(&*dimuonCand);
+
+          numberOfInnerLostHitsM1 = (dynamic_cast<const pat::Muon*>(dimuonCand->daughter("muon1")))->
+                               track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
+          numberOfInnerLostHitsM2 = (dynamic_cast<const pat::Muon*>(dimuonCand->daughter("muon2")))->
+                               track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
+
+          numberOfOuterLostHitsM1 = (dynamic_cast<const pat::Muon*>(dimuonCand->daughter("muon1")))->
+                               track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS);
+          numberOfOuterLostHitsM2 = (dynamic_cast<const pat::Muon*>(dimuonCand->daughter("muon2")))->
+                               track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS);
+
+
           nonia++;
           if (OnlyBest_) break;
           else { 
