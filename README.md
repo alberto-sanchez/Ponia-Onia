@@ -5,7 +5,7 @@ The Onia2MuMu Rootupler. This package is mean to be run after the BPH CompactSki
 * **Onia2MuMuRootupler** - Rootupler of the Onia2MuMu objects
 * **OniaMM**             - Rootupler for genparticles objects, AOD
 
-* Setup: (should run with the same release in CompactSkim, but may run in any other)
+* Setup: (should run with the same release in CompactSkim, but may run in any other, it has being tested on 7_4x, 7_6X and 8_0x)
 
 ```
 export SCRAM_ARCH=slc6_amd64_gcc491
