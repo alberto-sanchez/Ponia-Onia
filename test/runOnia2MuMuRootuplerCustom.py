@@ -15,7 +15,9 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:inputfile.root')
+    fileNames = cms.untracked.vstring(
+'/store/group/phys_bphys/asanchez/Charmonium/BPHSkim-v1-Run2016B-PromptReco-v2/160521_011201/0000/BPHSkim_1.root'
+    )
 )
 
 process.TFileService = cms.Service("TFileService",
