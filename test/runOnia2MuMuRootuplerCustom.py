@@ -19,10 +19,10 @@ process.source = cms.Source("PoolSource",
 )
 
 process.TFileService = cms.Service("TFileService",
-        fileName = cms.string('file:runOnia2MuMuRootupler.root'),
+        fileName = cms.string('rootuple-jpsi.root'),
 )
 
-process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True))
+process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False))
 
 process.load('Ponia.Onia.Onia2MuMuRootuplerCustom_cfi')
 process.p = cms.Path(process.rootuple)
