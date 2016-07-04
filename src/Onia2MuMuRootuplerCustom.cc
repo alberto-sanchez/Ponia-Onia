@@ -71,6 +71,7 @@ class Onia2MuMuRootuplerCustom:public edm::EDAnalyzer {
 
         int  pdgid_;
         std::vector<double> OniaMassCuts_;
+        std::vector<std::string> FilterNames_;
 	bool isMC_;
         bool OnlyBest_;
         bool OnlyGen_;
@@ -142,6 +143,7 @@ primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter< edm
 triggerResults_Label(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"))),
 pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
+FilterNames_(iConfig.getParameter<std::vector<std::string>>("FiltersNames")),
 isMC_(iConfig.getParameter<bool>("isMC")),
 OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
 OnlyGen_(iConfig.getParameter<bool>("OnlyGen")),
@@ -236,6 +238,28 @@ bool Onia2MuMuRootuplerCustom::isAncestor(const reco::Candidate* ancestor, const
    ex. 1 = pass 0
 */
 
+UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
+   UInt_t trigger = 0;
+   edm::Handle<edm::TriggerResults> triggerResults_handle;
+   iEvent.getByLabel(TriggerResults_Label_, triggerResults_handle);
+   if (triggerResults_handle.isValid()) {
+      const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
+      for (unsigned int i = 0; i < FilterNames_.size(); i++) {
+         for (int version = 1; version < 9; version++) {
+            std::stringstream ss;
+            ss << FilterNames_[i] << "_v" << version;
+            unsigned int bit = TheTriggerNames.triggerIndex(edm::InputTag(ss.str()).label().c_str());
+            if (bit < triggerResults_handle->size() && triggerResults_handle->accept(bit) && !triggerResults_handle->error(bit)) {
+               trigger += (1<<i);
+               break;
+            }
+         }
+      }
+   } else std::cout << "Onia2MuMuRootupler::getTriggerBits: *** NO triggerResults found *** " << iEvent.id().run() << "," << iEvent.id().event() << std::endl;
+   return trigger;
+}
+
+/*
 UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
    UInt_t itrigger = 0;
    edm::Handle<edm::TriggerResults> triggerResults_handle;
@@ -417,6 +441,8 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
    }
    return itrigger;
 }
+*/
+
 
 UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent ) {
    UInt_t itrigger = 0;
