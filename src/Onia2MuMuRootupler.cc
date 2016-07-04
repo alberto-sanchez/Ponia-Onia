@@ -120,7 +120,7 @@ primaryVertices_Label(consumes<reco::VertexCollection>(iConfig.getParameter< edm
 triggerResults_Label(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"))),
 pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
-FilterNames_(iConfig.getParameter<std::vector<std::string>>("FiltersNames")),
+FilterNames_(iConfig.getParameter<std::vector<std::string>>("FilterNames")),
 isMC_(iConfig.getParameter<bool>("isMC")),
 OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
 OnlyGen_(iConfig.getParameter<bool>("OnlyGen"))
