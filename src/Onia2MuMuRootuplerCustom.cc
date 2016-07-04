@@ -240,10 +240,10 @@ bool Onia2MuMuRootuplerCustom::isAncestor(const reco::Candidate* ancestor, const
    ex. 1 = pass 0
 */
 
-UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent, std::vector<std::string> TestFilterNames_ ) {
+UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent, std::vector<std::string> TestFilterNames_ ) {
    UInt_t trigger = 0;
    edm::Handle<edm::TriggerResults> triggerResults_handle;
-   iEvent.getByLabel(TriggerResults_Label_, triggerResults_handle);
+   iEvent.getByToken(triggerResults_Label, triggerResults_handle);
    if (triggerResults_handle.isValid()) {
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
       for (unsigned int i = 0; i < TestFilterNames_.size(); i++) {
