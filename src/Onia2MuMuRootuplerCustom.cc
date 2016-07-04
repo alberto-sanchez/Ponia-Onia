@@ -46,8 +46,8 @@ class Onia2MuMuRootuplerCustom:public edm::EDAnalyzer {
 	static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
 
       private:
-        UInt_t getTriggerBits(const edm::Event &);
-        UInt_t getSingleTriggerBits(const edm::Event &);
+        UInt_t getTriggerBits(const edm::Event &, std::vector<std::string>);
+        //UInt_t getSingleTriggerBits(const edm::Event &, std::vector<std::string>);
         bool   isAncestor(const reco::Candidate *, const reco::Candidate *);
         const  reco::Candidate* GetAncestor(const reco::Candidate *);
         UInt_t isTriggerMatched(const pat::CompositeCandidate *);
@@ -72,6 +72,7 @@ class Onia2MuMuRootuplerCustom:public edm::EDAnalyzer {
         int  pdgid_;
         std::vector<double> OniaMassCuts_;
         std::vector<std::string> FilterNames_;
+        std::vector<std::string> SingleFilterNames_;
 	bool isMC_;
         bool OnlyBest_;
         bool OnlyGen_;
@@ -144,6 +145,7 @@ triggerResults_Label(consumes<edm::TriggerResults>(iConfig.getParameter<edm::Inp
 pdgid_(iConfig.getParameter<uint32_t>("onia_pdgid")),
 OniaMassCuts_(iConfig.getParameter<std::vector<double>>("onia_mass_cuts")),
 FilterNames_(iConfig.getParameter<std::vector<std::string>>("FilterNames")),
+SingleFilterNames_(iConfig.getParameter<std::vector<std::string>>("SingleFilterNames")),
 isMC_(iConfig.getParameter<bool>("isMC")),
 OnlyBest_(iConfig.getParameter<bool>("OnlyBest")),
 OnlyGen_(iConfig.getParameter<bool>("OnlyGen")),
@@ -238,16 +240,16 @@ bool Onia2MuMuRootuplerCustom::isAncestor(const reco::Candidate* ancestor, const
    ex. 1 = pass 0
 */
 
-UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
+UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent, std::vector<std::string> TestFilterNames_ ) {
    UInt_t trigger = 0;
    edm::Handle<edm::TriggerResults> triggerResults_handle;
    iEvent.getByLabel(TriggerResults_Label_, triggerResults_handle);
    if (triggerResults_handle.isValid()) {
       const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      for (unsigned int i = 0; i < FilterNames_.size(); i++) {
+      for (unsigned int i = 0; i < TestFilterNames_.size(); i++) {
          for (int version = 1; version < 9; version++) {
             std::stringstream ss;
-            ss << FilterNames_[i] << "_v" << version;
+            ss << TestFilterNames_[i] << "_v" << version;
             unsigned int bit = TheTriggerNames.triggerIndex(edm::InputTag(ss.str()).label().c_str());
             if (bit < triggerResults_handle->size() && triggerResults_handle->accept(bit) && !triggerResults_handle->error(bit)) {
                trigger += (1<<i);
@@ -443,7 +445,7 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
 }
 */
 
-
+/*
 UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent ) {
    UInt_t itrigger = 0;
    edm::Handle<edm::TriggerResults> triggerResults_handle;
@@ -578,6 +580,7 @@ UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent )
    }
    return itrigger;
 }
+*/
 
 // ------------ method called for each event  ------------
 void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
@@ -598,8 +601,8 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
 
   numPrimaryVertices = 0;
   if (primaryVertices_handle.isValid()) numPrimaryVertices = (int) primaryVertices_handle->size();
-  trigger = getTriggerBits(iEvent);
-  triggersingle = getSingleTriggerBits(iEvent);
+  trigger       = getTriggerBits(iEvent,FilterNames_);
+  triggersingle = getTriggerBits(iEvent,SingleFilterNames_);
 
   dimuon_pdgId = 0;
   mother_pdgId = 0;
