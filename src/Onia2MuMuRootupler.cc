@@ -219,156 +219,6 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
    return trigger;
 }
 
-/*
-UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
-   UInt_t itrigger = 0;
-   edm::Handle<edm::TriggerResults> triggerResults_handle;
-   iEvent.getByToken(triggerResults_Label, triggerResults_handle);
-   if ( triggerResults_handle.isValid() ) { 
-      const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b;
-      for ( int version = 1; version<3; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb;
-         ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
-         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
-         ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
-         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label().c_str()));
-         ss2<<"HLT_Dimuon13_Upsilon_v"<<version;
-         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label().c_str()));
-         ss3<<"HLT_Dimuon10_Jpsi_Barrel_v"<<version;
-         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
-         ss4<<"HLT_Dimuon8_PsiPrime_Barrel_v"<<version;
-         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
-         ss5<<"HLT_Dimuon8_Upsilon_Barrel_v"<<version;
-         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
-         ss6<<"HLT_Dimuon20_Jpsi_v"<<version;
-         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
-         ss7<<"HLT_Dimuon0_Phi_Barrel_v"<<version;
-         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
-
-         ss8<<"HLT_HIL1DoubleMu0_v"<<version;
-         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
-         ss9<<"HLT_HIL2DoubleMu0_v"<<version;
-         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
-         ssa<<"HLT_HIL2Mu3_v"<<version;
-         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
-         ssb<<"HLT_HIL3Mu3_v"<<version;
-         bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label().c_str()));
-      }
-      for (unsigned int i=0; i<bits_0.size(); i++) {
-         unsigned int bit = bits_0[i];
-         if ( bit < triggerResults_handle->size() ){
-	   if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_1.size(); i++) {
-         unsigned int bit = bits_1[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 2;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_2.size(); i++) {
-         unsigned int bit = bits_2[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 4;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_3.size(); i++) {
-         unsigned int bit = bits_3[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 8;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_4.size(); i++) {
-         unsigned int bit = bits_4[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 16;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_5.size(); i++) {
-         unsigned int bit = bits_5[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 32;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_6.size(); i++) {
-         unsigned int bit = bits_6[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 64;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_7.size(); i++) {
-         unsigned int bit = bits_7[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 128;
-             break;
-           }
-         }
-      }
-
-      for (unsigned int i=0; i<bits_8.size(); i++) {
-         unsigned int bit = bits_8[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 256;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_9.size(); i++) {
-         unsigned int bit = bits_9[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 512;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_a.size(); i++) {
-         unsigned int bit = bits_a[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1024;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_b.size(); i++) {
-         unsigned int bit = bits_b[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 2048;
-             break;
-           }
-         }
-      }
-   }
-   return itrigger;
-}
-*/
-
 // ------------ method called for each event  ------------
 void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
@@ -476,9 +326,8 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           }
         } 
       }
-    } //..else {
-      //std::cout << "Onia2MuMuRootupler: (" << run << "," << event << ") -> "; 
-      if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
+    } // if ( dimuons.isValid()
+    if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
         int mcharge1 = 0, mcharge2 = 0;
         reco::Candidate::LorentzVector v1, v2;
         for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {
@@ -486,15 +335,13 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           if (nmuons == 1) { 
             mcharge1 = muonCand->charge();
             v1 = muonCand->p4();
-            //std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
           } else {
             if ( mcharge1*muonCand->charge() < 0  && mcharge2 == 0 ) { 
               mcharge2 = muonCand->charge();
               v2 = muonCand->p4();
-              //std::cout << "[" << muonCand->charge() << "] pt(" << nmuons << ") = " << muonCand->pt() << ", ";
               nmuons = 2;
               break;    // we store only 2 muons
-            } //else std::cout << "{" << muonCand->charge() << "} pt(" << nmuons << ") = " << muonCand->pt() << ", ";
+            } 
           }
         }
         if ( mcharge1 > 0 ) { 
@@ -504,10 +351,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
           muonN_p4.SetPtEtaPhiM(v1.pt(),v1.eta(),v1.phi(),v1.mass());
           if (mcharge2 > 0 ) muonP_p4.SetPtEtaPhiM(v2.pt(),v2.eta(),v2.phi(),v2.mass());
         }
-        //std::cout << std::endl << " gen pt(+) = " << gen_muonP_p4.Pt() << ", gen pt(-) = " << gen_muonM_p4.Pt();
-        //std::cout <<  ", pt(+) = " << muonP_p4.Pt() << ", pt(-) = " << muonN_p4.Pt() << std::endl;
-      } //else std::cout << "there are " << nmuons << " muons in this event" << std::endl;
-    //..}
+    }
   }  // !OnlyGen_
 
   if ( !already_stored ) {  // we have to make sure, we are not double storing an combination
