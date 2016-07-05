@@ -47,7 +47,6 @@ class Onia2MuMuRootuplerCustom:public edm::EDAnalyzer {
 
       private:
         UInt_t getTriggerBits(const edm::Event &, std::vector<std::string>);
-        //UInt_t getSingleTriggerBits(const edm::Event &, std::vector<std::string>);
         bool   isAncestor(const reco::Candidate *, const reco::Candidate *);
         const  reco::Candidate* GetAncestor(const reco::Candidate *);
         UInt_t isTriggerMatched(const pat::CompositeCandidate *);
@@ -233,7 +232,7 @@ bool Onia2MuMuRootuplerCustom::isAncestor(const reco::Candidate* ancestor, const
    return false;
 }
 
-/* Grab Trigger information. Save it in variable trigger, trigger is an uint between 0 and 256, in binary it is:
+/* Grab Trigger information. Save it in variable trigger, trigger is an uint in binary format it is:
    (pass 2)(pass 1)(pass 0)
    ex. 7 = pass 0, 1 and 2
    ex. 6 = pass 1, 2
@@ -257,330 +256,9 @@ UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent, std::v
             }
          }
       }
-   } else std::cout << "Onia2MuMuRootupler::getTriggerBits: *** NO triggerResults found *** " << iEvent.id().run() << "," << iEvent.id().event() << std::endl;
+   } else std::cout << "Onia2MuMuRootuplerCustom::getTriggerBits: *** NO triggerResults found *** " << iEvent.id().run() << "," << iEvent.id().event() << std::endl;
    return trigger;
 }
-
-/*
-UInt_t Onia2MuMuRootuplerCustom::getTriggerBits(const edm::Event& iEvent ) {
-   UInt_t itrigger = 0;
-   edm::Handle<edm::TriggerResults> triggerResults_handle;
-   iEvent.getByToken(triggerResults_Label, triggerResults_handle);
-   if ( triggerResults_handle.isValid() ) { 
-      const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a, bits_b, bits_c, bits_d, bits_e;
-      for ( int version = 1; version<4; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb,ssc,ssd,sse;
-         ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
-         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
-         ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
-         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label().c_str()));
-         ss2<<"HLT_Dimuon13_Upsilon_v"<<version;
-         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label().c_str()));
-         ss3<<"HLT_Dimuon10_Jpsi_Barrel_v"<<version;
-         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
-         ss4<<"HLT_Dimuon8_PsiPrime_Barrel_v"<<version;
-         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
-         ss5<<"HLT_Dimuon8_Upsilon_Barrel_v"<<version;
-         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
-         ss6<<"HLT_Dimuon20_Jpsi_v"<<version;
-         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
-         ss7<<"HLT_Dimuon0_Phi_Barrel_v"<<version;
-         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
-
-         ss8<<"HLT_HIL1DoubleMu0_v"<<version;
-         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
-         ss9<<"HLT_HIL2DoubleMu0_v"<<version;
-         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
-         ssa<<"HLT_HIL2Mu3_v"<<version;
-         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
-         ssb<<"HLT_HIL3Mu3_v"<<version;
-         bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label().c_str()));
-         ssc<<"HLT_Mu16_TkMu0_dEta18_Onia_v"<<version;
-         bits_c.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssc.str()).label().c_str()));
-         ssd<<"HLT_Mu25_TkMu0_dEta18_Onia_v"<<version;
-         bits_d.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssd.str()).label().c_str()));
-         sse<<"HLT_Mu16_TkMu0_dEta18_Phi_v"<<version;
-         bits_e.push_back(TheTriggerNames.triggerIndex( edm::InputTag(sse.str()).label().c_str()));
-      }
-      for (unsigned int i=0; i<bits_0.size(); i++) {
-         unsigned int bit = bits_0[i];
-         if ( bit < triggerResults_handle->size() ){
-	   if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_1.size(); i++) {
-         unsigned int bit = bits_1[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 2;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_2.size(); i++) {
-         unsigned int bit = bits_2[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 4;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_3.size(); i++) {
-         unsigned int bit = bits_3[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 8;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_4.size(); i++) {
-         unsigned int bit = bits_4[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 16;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_5.size(); i++) {
-         unsigned int bit = bits_5[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 32;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_6.size(); i++) {
-         unsigned int bit = bits_6[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 64;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_7.size(); i++) {
-         unsigned int bit = bits_7[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 128;
-             break;
-           }
-         }
-      }
-
-      for (unsigned int i=0; i<bits_8.size(); i++) {
-         unsigned int bit = bits_8[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 256;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_9.size(); i++) {
-         unsigned int bit = bits_9[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 512;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_a.size(); i++) {
-         unsigned int bit = bits_a[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1024;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_b.size(); i++) {
-         unsigned int bit = bits_b[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 2048;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_c.size(); i++) {
-         unsigned int bit = bits_c[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 4096;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_d.size(); i++) {
-         unsigned int bit = bits_d[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 8192;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_e.size(); i++) {
-         unsigned int bit = bits_e[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 16384;
-             break;
-           }
-         }
-      }
-
-   }
-   return itrigger;
-}
-*/
-
-/*
-UInt_t Onia2MuMuRootuplerCustom::getSingleTriggerBits(const edm::Event& iEvent ) {
-   UInt_t itrigger = 0;
-   edm::Handle<edm::TriggerResults> triggerResults_handle;
-   iEvent.getByToken(triggerResults_Label, triggerResults_handle);
-   if ( triggerResults_handle.isValid() ) {
-      const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerResults_handle);
-      std::vector <unsigned int> bits_0, bits_1, bits_2, bits_3, bits_4, bits_5, bits_6, bits_7, bits_8, bits_9, bits_a;
-      for ( int version = 1; version<5; version ++ ) {
-         std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa;
-         ss0<<"HLT_Mu20_v"<<version;
-         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
-         ss1<<"HLT_Mu24_eta2p1_v"<<version;
-         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label().c_str()));
-         ss2<<"HLT_Mu27_v"<<version;
-         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label().c_str()));
-         ss3<<"HLT_Mu45_eta2p1_v"<<version;
-         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
-         ss4<<"HLT_Mu50_v"<<version;
-         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
-         ss5<<"HLT_Mu55_v"<<version;
-         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
-         ss6<<"HLT_Mu8_v"<<version;
-         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
-         ss7<<"HLT_Mu17_v"<<version;
-         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
-         ss8<<"HLT_Mu24_v"<<version;
-         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
-         ss9<<"HLT_Mu34_v"<<version;
-         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
-         ssa<<"HLT_Mu7p5_Track2_Jpsi_v"<<version;
-         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
-      }
-      for (unsigned int i=0; i<bits_0.size(); i++) {
-         unsigned int bit = bits_0[i];
-         if ( bit < triggerResults_handle->size() ){
-	   if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_1.size(); i++) {
-         unsigned int bit = bits_1[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 2;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_2.size(); i++) {
-         unsigned int bit = bits_2[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 4;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_3.size(); i++) {
-         unsigned int bit = bits_3[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 8;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_4.size(); i++) {
-         unsigned int bit = bits_4[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 16;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_5.size(); i++) {
-         unsigned int bit = bits_5[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 32;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_6.size(); i++) {
-         unsigned int bit = bits_6[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 64;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_7.size(); i++) {
-         unsigned int bit = bits_7[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 128;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_8.size(); i++) {
-         unsigned int bit = bits_8[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 256;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_9.size(); i++) {
-         unsigned int bit = bits_9[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 512;
-             break;
-           }
-         }
-      }
-      for (unsigned int i=0; i<bits_a.size(); i++) {
-         unsigned int bit = bits_a[i];
-         if ( bit < triggerResults_handle->size() ){
-           if ( triggerResults_handle->accept( bit ) && !triggerResults_handle->error( bit ) ) {
-             itrigger += 1024;
-             break;
-           }
-         }
-      }
-   }
-   return itrigger;
-}
-*/
 
 // ------------ method called for each event  ------------
 void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup) {
@@ -699,8 +377,6 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
                                track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS);
           numberOfOuterLostHitsM2 = (dynamic_cast<const pat::Muon*>(dimuonCand->daughter("muon2")))->
                                track()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS);
-
-
           nonia++;
           if (OnlyBest_) break;
           else { 
@@ -710,7 +386,7 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
         } 
       }
     } 
-      if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
+    if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
         int mcharge1 = 0, mcharge2 = 0;
         reco::Candidate::LorentzVector v1, v2;
         for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {
@@ -734,7 +410,7 @@ void Onia2MuMuRootuplerCustom::analyze(const edm::Event & iEvent, const edm::Eve
           muonN_p4.SetPtEtaPhiM(v1.pt(),v1.eta(),v1.phi(),v1.mass());
           if (mcharge2 > 0 ) muonP_p4.SetPtEtaPhiM(v2.pt(),v2.eta(),v2.phi(),v2.mass());
         }
-      }
+    }
   }  // !OnlyGen_
 
   if ( !already_stored ) {  // we have to make sure, we are not double storing an combination
