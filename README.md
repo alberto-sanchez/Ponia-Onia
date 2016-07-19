@@ -5,7 +5,9 @@ The Onia2MuMu Rootupler. This package is mean to be run after the BPH CompactSki
 * **Onia2MuMuRootupler** - Rootupler of the Onia2MuMu objects
 * **OniaMM**             - Rootupler for genparticles objects, AOD
 
-* Setup: (should run with the same release in CompactSkim, but may run in any other, it has being tested on 7_4x, 7_6X and 8_0x)
+* Setup: (should run with the same release in CompactSkim or official BPH Skim, but may run in any other, 
+it has being tested for runII-2015 data [74x and 76x] and runII-2016 [8_0x]
+)
 
 ```
 export SCRAM_ARCH=slc6_amd64_gcc491
@@ -25,7 +27,9 @@ cmsRun Ponia/Onia/test/runOnia2MuMuRootupler.py
 ```
 
 #CompactSkim
-* Setup: (it is part of CMSSW_7_5_X onwards, but for now if you want to use it in CMSSW_7_4_X, you can do)
+* Setup: (it is part of CMSSW_7_5_X onwards, but for now if you want to use it in CMSSW_7_4_X, you can do).
+Notice that this setup is suported for at the most CMSSW_7_6_x, e.g. runII-2015 data.  If you need to run
+on runII-2016 data, you should use the official BPH SKIM.
 
 ```
 export SCRAM_ARCH=slc6_amd64_gcc491
