@@ -40,7 +40,7 @@
 class Onia2MuMuRootupler:public edm::EDAnalyzer {
       public:
 	explicit Onia2MuMuRootupler(const edm::ParameterSet &);
-	~Onia2MuMuRootupler();
+	~Onia2MuMuRootupler() override;
 
 	static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
 
@@ -49,14 +49,14 @@ class Onia2MuMuRootupler:public edm::EDAnalyzer {
         bool   isAncestor(const reco::Candidate *, const reco::Candidate *);
         const  reco::Candidate* GetAncestor(const reco::Candidate *);
 
-	virtual void beginJob();
-	virtual void analyze(const edm::Event &, const edm::EventSetup &);
-	virtual void endJob();
+	void beginJob() override;
+	void analyze(const edm::Event &, const edm::EventSetup &) override;
+	void endJob() override;
 
-	virtual void beginRun(edm::Run const &, edm::EventSetup const &);
-	virtual void endRun(edm::Run const &, edm::EventSetup const &);
-	virtual void beginLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
-	virtual void endLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
+	void beginRun(edm::Run const &, edm::EventSetup const &) override;
+	void endRun(edm::Run const &, edm::EventSetup const &) override;
+	void beginLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &) override;
+	void endLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &) override;
 
 	// ----------member data ---------------------------
 	std::string file_name;
@@ -208,7 +208,7 @@ UInt_t Onia2MuMuRootupler::getTriggerBits(const edm::Event& iEvent ) {
          for (int version = 1; version < 9; version++) {
             std::stringstream ss;
             ss << FilterNames_[i] << "_v" << version;
-            unsigned int bit = TheTriggerNames.triggerIndex(edm::InputTag(ss.str()).label().c_str());
+            unsigned int bit = TheTriggerNames.triggerIndex(edm::InputTag(ss.str()).label());
             if (bit < triggerResults_handle->size() && triggerResults_handle->accept(bit) && !triggerResults_handle->error(bit)) {
                trigger += (1<<i);
                break;
@@ -293,7 +293,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
 
   bool already_stored = false;
   if ( ! OnlyGen_ ) { // we will look for dimuons, then for muons
-    if ( dimuons.isValid() && dimuons->size() > 0) {
+    if ( dimuons.isValid() && !dimuons->empty()) {
       for ( pat::CompositeCandidateCollection::const_iterator dimuonCand = dimuons->begin(); dimuonCand != dimuons->end(); ++dimuonCand ) {
         if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0) {
           dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(),dimuonCand->eta(),dimuonCand->phi(),dimuonCand->mass());
@@ -327,7 +327,7 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
         } 
       }
     } // if ( dimuons.isValid()
-    if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
+    if ( nonia == 0 && muons.isValid() && !muons->empty() ) {
         int mcharge1 = 0, mcharge2 = 0;
         reco::Candidate::LorentzVector v1, v2;
         for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {

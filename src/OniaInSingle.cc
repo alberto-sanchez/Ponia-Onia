@@ -41,7 +41,7 @@
 class OniaInSingle:public edm::EDAnalyzer {
       public:
 	explicit OniaInSingle(const edm::ParameterSet &);
-	~OniaInSingle();
+	~OniaInSingle() override;
 
 	static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
 
@@ -53,14 +53,14 @@ class OniaInSingle:public edm::EDAnalyzer {
         UInt_t isTriggerMatched(const pat::CompositeCandidate *);
         void   muonStationDistance (const pat::CompositeCandidate *);
 
-	virtual void beginJob();
-	virtual void analyze(const edm::Event &, const edm::EventSetup &);
-	virtual void endJob();
+	void beginJob() override;
+	void analyze(const edm::Event &, const edm::EventSetup &) override;
+	void endJob() override;
 
-	virtual void beginRun(const edm::Run &, const edm::EventSetup &);
-	virtual void endRun(edm::Run const &, edm::EventSetup const &);
-	virtual void beginLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
-	virtual void endLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &);
+	void beginRun(const edm::Run &, const edm::EventSetup &) override;
+	void endRun(edm::Run const &, edm::EventSetup const &) override;
+	void beginLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &) override;
+	void endLuminosityBlock(edm::LuminosityBlock const &, edm::EventSetup const &) override;
 
 	// ----------member data ---------------------------
 	std::string file_name;
@@ -235,25 +235,25 @@ UInt_t OniaInSingle::getSingleTriggerBits(const edm::Event& iEvent ) {
       for ( int version = 1; version<5; version ++ ) {
          std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9;
          ss0<<"HLT_Mu20_v"<<version;
-         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
+         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label()));
          ss1<<"HLT_Mu24_eta2p1_v"<<version;
-         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label().c_str()));
+         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label()));
          ss2<<"HLT_Mu27_v"<<version;
-         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label().c_str()));
+         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label()));
          ss3<<"HLT_Mu45_eta2p1_v"<<version;
-         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
+         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label()));
          ss4<<"HLT_Mu50_v"<<version;
-         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
+         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label()));
          ss5<<"HLT_Mu55_v"<<version;
-         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
+         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label()));
          ss6<<"HLT_Mu8_v"<<version;
-         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
+         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label()));
          ss7<<"HLT_Mu17_v"<<version;
-         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
+         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label()));
          ss8<<"HLT_Mu24_v"<<version;
-         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
+         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label()));
          ss9<<"HLT_Mu34_v"<<version;
-         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
+         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -360,30 +360,30 @@ UInt_t OniaInSingle::getDimuonTriggerBits(const edm::Event& iEvent ) {
       for ( int version = 1; version<5; version ++ ) {
          std::stringstream ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7,ss8,ss9,ssa,ssb;
          ss0<<"HLT_Dimuon16_Jpsi_v"<<version;
-         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label().c_str()));
+         bits_0.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss0.str()).label()));
          ss1<<"HLT_Dimuon13_PsiPrime_v"<<version;
-         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label().c_str()));
+         bits_1.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss1.str()).label()));
          ss2<<"HLT_Dimuon13_Upsilon_v"<<version;
-         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label().c_str()));
+         bits_2.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss2.str()).label()));
          ss3<<"HLT_Dimuon10_Jpsi_Barrel_v"<<version;
-         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label().c_str()));
+         bits_3.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss3.str()).label()));
          ss4<<"HLT_Dimuon8_PsiPrime_Barrel_v"<<version;
-         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label().c_str()));
+         bits_4.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss4.str()).label()));
          ss5<<"HLT_Dimuon8_Upsilon_Barrel_v"<<version;
-         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label().c_str()));
+         bits_5.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss5.str()).label()));
          ss6<<"HLT_Dimuon20_Jpsi_v"<<version;
-         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label().c_str()));
+         bits_6.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss6.str()).label()));
          ss7<<"HLT_Dimuon0_Phi_Barrel_v"<<version;
-         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label().c_str()));
+         bits_7.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss7.str()).label()));
 
          ss8<<"HLT_HIL1DoubleMu0_v"<<version;
-         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label().c_str()));
+         bits_8.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss8.str()).label()));
          ss9<<"HLT_HIL2DoubleMu0_v"<<version;
-         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label().c_str()));
+         bits_9.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ss9.str()).label()));
          ssa<<"HLT_HIL2Mu3_v"<<version;
-         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label().c_str()));
+         bits_a.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssa.str()).label()));
          ssb<<"HLT_HIL3Mu3_v"<<version;
-         bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label().c_str()));
+         bits_b.push_back(TheTriggerNames.triggerIndex( edm::InputTag(ssb.str()).label()));
       }
       for (unsigned int i=0; i<bits_0.size(); i++) {
          unsigned int bit = bits_0[i];
@@ -578,7 +578,7 @@ void OniaInSingle::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
 
   bool already_stored = false;
   if ( ! OnlyGen_ ) { // we will look for dimuons, then for muons
-    if ( dimuons.isValid() && dimuons->size() > 0) {
+    if ( dimuons.isValid() && !dimuons->empty()) {
       for ( pat::CompositeCandidateCollection::const_iterator dimuonCand = dimuons->begin(); dimuonCand != dimuons->end(); ++dimuonCand ) {
         vProb = dimuonCand->userFloat("vProb");
         if (dimuonCand->mass() > OniaMassMin_ && dimuonCand->mass() < OniaMassMax_ && dimuonCand->charge() == 0 && vProb > -1.) {
@@ -615,7 +615,7 @@ void OniaInSingle::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
         } 
       }
     } 
-    if ( nonia == 0 && muons.isValid() && muons->size() > 0 ) {
+    if ( nonia == 0 && muons.isValid() && !muons->empty() ) {
       int mcharge1 = 0, mcharge2 = 0;
       reco::Candidate::LorentzVector v1, v2;
       for ( pat::MuonCollection::const_iterator muonCand = muons->begin(); muonCand!= muons->end(); ++muonCand ) {
@@ -659,7 +659,7 @@ UInt_t OniaInSingle::isTriggerMatched(const pat::CompositeCandidate *diMuon_cand
   for (unsigned int iTr = 0; iTr<HLTLastFilters.size(); iTr++ ) {
      const pat::TriggerObjectStandAloneCollection mu1HLTMatches = muon1->triggerObjectMatchesByFilter(HLTLastFilters[iTr]);
      const pat::TriggerObjectStandAloneCollection mu2HLTMatches = muon2->triggerObjectMatchesByFilter(HLTLastFilters[iTr]);
-     if (mu1HLTMatches.size() > 0 && mu2HLTMatches.size() > 0) matched += (1<<iTr); 
+     if (!mu1HLTMatches.empty() && !mu2HLTMatches.empty()) matched += (1<<iTr); 
   }
   return matched;
 }

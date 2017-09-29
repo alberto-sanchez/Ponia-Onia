@@ -38,17 +38,17 @@
 class OniaMM : public edm::EDAnalyzer {
 public:
   explicit OniaMM(const edm::ParameterSet&);
-  ~OniaMM();
+  ~OniaMM() override;
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
 private:
-  virtual void beginJob();
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob();
-  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-  virtual void endRun(edm::Run const&, edm::EventSetup const&);
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  void beginJob() override;
+  void analyze(const edm::Event&, const edm::EventSetup&) override;
+  void endJob() override;
+  void beginRun(edm::Run const&, edm::EventSetup const&) override;
+  void endRun(edm::Run const&, edm::EventSetup const&) override;
+  void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   const reco::Candidate* GetStableParticle(const reco::Candidate*);
   const reco::Candidate* GetAncestor(const reco::Candidate*);
 
